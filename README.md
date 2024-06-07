@@ -31,8 +31,6 @@ lazysar --ago=1 -- -i 300 -u
 lazysar -l | xargs -I{} lazysar --dev=sda --iface=eth1 --ago=1 --preset={} --height=30 -- -i 3600
 ```
 
-Parameters after `--` are passed to `sar` command. Parameter `--ago=X` would be translated to `-f /var/log/sysstat/sa$(date -d '1 day ago' +'%d')`.
-
 ## Coming soon
 
 A layout for `zellij` to show charts in panes with possibility to change the date or time.
