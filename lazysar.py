@@ -257,6 +257,8 @@ y_max = (
 )
 fig.set_y_limits(min_=0, max_=y_max)
 
+fig.origin = False
+
 
 def float_formatter(val, delta, chars=10, left=True):
     return "{:6.2f}".format(val).center(chars)
@@ -265,11 +267,11 @@ def float_formatter(val, delta, chars=10, left=True):
 fig.register_label_formatter(float, float_formatter)
 
 
-def custom_x_tick_formatter(val, delta, chars=10, left=True):
+def custom_x_tick_formatter(val, delta):
     dt = datetime.fromtimestamp(val)
-    return dt.strftime("%H:%M").center(chars)
+    return dt.strftime("%H:%M").center(10)
 
 
-fig.x_ticks_fkt = custom_x_tick_formatter
+setattr(fig, "x_ticks_fkt", custom_x_tick_formatter)
 
 print(fig.show(legend=(len(headers) > 2)))
