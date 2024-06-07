@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+PRESET=$1
+shift
+
+RUNDIR=/var/run/lazysar
+cd $RUNDIR
+touch $RUNDIR/commands
+
+while read COMMANDS; do
+    if [ "$COMMANDS" == "STOP" ]; then
+        break
+    fi
+    eval "lazysar --preset=$PRESET" "$@" "--title='' $COMMANDS"
+done < <(tail -n 1 -f $RUNDIR/commands)

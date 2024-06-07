@@ -147,11 +147,6 @@ if args.ago:
 
 terminal_size = shutil.get_terminal_size()
 
-print("⠒" * terminal_size.columns)
-
-if args.title:
-    print(args.title)
-
 ### Get data
 
 sar_cmd = ["sar"] + sar_args
@@ -231,9 +226,7 @@ if not data_columns:
 
 fig = plotille.Figure()
 fig.width = terminal_size.columns - 25 - (len(args.title) if args.title else 0)
-fig.height = (
-    args.height if args.height else terminal_size.lines - 12 - len(data_columns)
-)
+fig.height = args.height if args.height else terminal_size.lines - 9 - len(data_columns)
 if args.x_label:
     fig.x_label = args.x_label
 if args.y_label:
@@ -273,5 +266,9 @@ def custom_x_tick_formatter(val, delta):
 
 
 setattr(fig, "x_ticks_fkt", custom_x_tick_formatter)
+
+os.system("clear")
+if args.title:
+    print(args.title)
 
 print(fig.show(legend=(len(headers) > 2)))

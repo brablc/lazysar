@@ -1,0 +1,39 @@
+layout  {
+  pane_template name="lazysar" {
+      command "lazysar-client"
+      close_on_exit true
+  }
+
+  pane split_direction="horizontal" {
+    pane split_direction="vertical" {
+      lazysar {
+        args "cpu"
+        name "CPU Usage"
+      }
+      lazysar {
+        args "disk_bytes"
+        name "Disk I/O"
+      }
+    }
+    pane split_direction="vertical" {
+      lazysar {
+        args "memory"
+        name "Memory Usage"
+      }
+      lazysar {
+        args "network_bytes"
+        name "Network I/O"
+      }
+    }
+    pane {
+        name "controller"
+        command "lazysar-cmd"
+        size 6
+        close_on_exit true
+        focus true
+    }
+    pane size=2 borderless=true {
+      plugin location="zellij:status-bar"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+if ! command -v zellij >/dev/null; then
+    echo "This command requires zellij to be installed!"
+    exit 1
+fi
+
+SCRIPT_PATH=$(readlink -f $0)
+SCRIPT_DIR=${SCRIPT_PATH%/*}
+
+RUNDIR=/var/run/lazysar
+touch $RUNDIR/commands
+cat $SCRIPT_DIR/defaults > $RUNDIR/commands
+
+SESSION=lazysar
+if zellij list-sessions | grep -q $SESSION; then
+    zellij attach $SESSION
+else
+    zellij -s $SESSION -l "$SCRIPT_DIR/basic.kdl"
+fi

@@ -1,5 +1,9 @@
 {
   "cpu": {
+    "args": "--y-label='%' --title='CPU Utilization' --include=%user,%system,%iowait",
+    "sar": "-u"
+  },
+  "cpu100": {
     "args": "--y-label='%' --title='CPU Utilization' --include=%user,%system,%iowait --y-max=100",
     "sar": "-u"
   },
@@ -23,8 +27,8 @@
     "args": "--y-label='Await Time (ms)' --title='Average Await Time' --include=await",
     "sar": "-d"
   },
-  "memory_usage": {
-    "args": "--y-label='MB' --title='Memory Usage' --include=kbbuffers,kbcached,memfree,memused",
+  "memory": {
+    "args": "--y-label='MB' --title='Memory Usage' --include=kbmemfree,kbmemused,kbbuffers,kbcached",
     "sar": "-r"
   },
   "network_bytes": {
