@@ -20,7 +20,15 @@ def extract_first_number(s):
     return float(match.group()) if match else None
 
 
-colors = [34, 196, 75, 226, 45, 202, 33, 208]
+colors = [
+    "bright_cyan",
+    "bright_yellow",
+    "bright_magenta",
+    "bright_green",
+    "bright_blue",
+    "bright_red",
+    "bright_white",
+]
 
 ### Parse arguments ###
 
@@ -230,7 +238,6 @@ if args.x_label:
     fig.x_label = args.x_label
 if args.y_label:
     fig.y_label = args.y_label
-fig.color_mode = "byte"
 
 for i, (header, values) in enumerate(data_columns.items()):
     fig.plot(times, values, label=header, lc=colors[i % len(colors)])

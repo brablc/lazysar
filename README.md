@@ -28,7 +28,7 @@ lazysar --ago=1 -- -i 300 -u
 
 # show all preset charts for yesterday,
 # please change --dev and --iface to match your system
-lazysar -l | xargs -I{} lazysar --dev=sda --iface=eth1 --ago=1 --preset={} --height=30 -- -i 3600
+lazysar -l | xargs -I{} lazysar --dev=sda --iface=eth1 --ago=1 --preset={} --height=30 -- -i 300
 ```
 
 ## Coming soon
