@@ -222,7 +222,7 @@ if not data_columns:
     exit(1)
 
 fig = plotille.Figure()
-fig.width = terminal_size.columns - 30
+fig.width = terminal_size.columns - 25 - (len(args.title) if args.title else 0)
 fig.height = (
     args.height if args.height else terminal_size.lines - 12 - len(data_columns)
 )
