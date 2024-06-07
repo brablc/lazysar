@@ -1,0 +1,38 @@
+{
+  "cpu": {
+    "args": "--y-label='%' --title='CPU Utilization' --include=%user,%system,%iowait --y-max=100",
+    "sar": "-u"
+  },
+  "load_average": {
+    "args": "--y-label='LA/QL' --title='Load Average and Queue Length' --exclude=plist-sz",
+    "sar": "-q"
+  },
+  "disk_iops": {
+    "args": "--y-label='IOps/s' --title='Disk I/O Operations per Second' --include=tps",
+    "sar": "-d"
+  },
+  "disk_bytes": {
+    "args": "--y-label='kB/s' --title='Disk Bytes Read/Write per Second' --include=rkB/s,wkB/s",
+    "sar": "-d"
+  },
+  "disk_queue_size": {
+    "args": "--y-label='Queue Size' --title='Disk Queue Size' --include=aqu-sz",
+    "sar": "-d"
+  },
+  "disk_await_time": {
+    "args": "--y-label='Await Time (ms)' --title='Average Await Time' --include=await",
+    "sar": "-d"
+  },
+  "memory_usage": {
+    "args": "--y-label='MB' --title='Memory Usage' --include=kbbuffers,kbcached,memfree,memused",
+    "sar": "-r"
+  },
+  "network_bytes": {
+    "args": "--y-label='Bytes/s' --title='Network Bytes per Second' --include=rxkB/s,txkB/s",
+    "sar": "-n DEV"
+  },
+  "context_switches": {
+    "args": "--y-label='Count/s' --title='Context Switches and Process creation'",
+    "sar": "-w"
+  }
+}
