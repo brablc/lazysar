@@ -62,8 +62,9 @@ fi
 if [ "$1" = "cmd" ]; then
     shift
     sleep 2
+    (sleep 1 && zellij action write-chars -- "$(cat "$DEFAULTS_FILE")" ) &
     while true; do
-        echo ">> Send params to panels (use history, <ENTER> for default refresh, STOP to exit): "
+        echo "Send args to panels (use history C-r, STOP to exit):"
         rlwrap -C lazysar $SCRIPT_PATH rlwrap || exit
     done
     exit
@@ -71,6 +72,7 @@ fi
 
 if [ "$1" = "rlwrap" ]; then
     shift
+    echo -n "> "
     read COMMAND
     if [ -z "$COMMAND" ]; then
         COMMAND="$(cat "$DEFAULTS_FILE")"
@@ -83,5 +85,4 @@ if [ "$1" = "rlwrap" ]; then
     exit
 fi
 
-LC_ALL=C
 "${SCRIPT_DIR}/.venv/bin/python" "${SCRIPT_DIR}/lazysar.py" --presets-file="${PRESETS_FILE}" "$@"
