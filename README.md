@@ -54,10 +54,10 @@ lazysar-panel
 Use the bottom panel to send different set of parameters to all panes at once. Examples:
 
 ```
-# yesterday with interval 5 minutes
---dev=sda --iface=eth1 --ago=1 -- -i 300
+# today with interval 5 minutes
+--dev=sda --iface=eth1 --ago=0 -- -i 300
 
-# day before yesterday with interval 1 minutes in the time 06:00 to 07:00 - zooming ;-)
+# yesterday with interval 1 minute in the time 06:00 to 07:00 - zooming ;-)
 --dev=sda --iface=eth1 --ago=1 -- -i 60 -s 06:00 -e 07:00
 ```
 
