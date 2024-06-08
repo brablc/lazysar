@@ -46,10 +46,10 @@ lazysar -l | xargs -I{} lazysar --dev=sda --iface=eth1 --ago=1 --preset={} --hei
 
 Show multiple charts predefined in basic.kdl (`zellij` layout file).
 
-
 ```sh
 lazysar-panel
 ```
+![image](https://github.com/brablc/lazysar/assets/841734/789a7a61-3b59-467e-af40-029cf8b92a70)
 
 Use the bottom panel to send different set of parameters to all panes at once. Examples:
 
