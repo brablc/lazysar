@@ -2,5 +2,88 @@
 
 SCRIPT_PATH=$(readlink -f $0)
 SCRIPT_DIR=${SCRIPT_PATH%/*}
+RUN_DIR=/var/run/lazysar
+RUN_CMDS="$RUN_DIR/commands"
+DEFAULTS_FILE="$HOME/.config/lazysar/defaults"
+if [ ! -f "$DEFAULTS_FILE" ]; then
+    DEFAULTS_FILE="$SCRIPT_DIR/defaults"
+fi
+PRESETS_FILE="$HOME/.config/lazysar/presets.json"
+if [ ! -f "$PRESETS_FILE" ]; then
+    PRESETS_FILE="$SCRIPT_DIR/presets.json"
+fi
 
-"${SCRIPT_DIR}/.venv/bin/python" "${SCRIPT_DIR}/lazysar.py" "$@"
+function check_zellij() {
+    if ! command -v zellij >/dev/null; then
+        echo "This command requires zellij to be installed!"
+        exit 1
+    fi
+}
+
+if [ "$1" = "panel" ]; then
+    shift
+    check_zellij
+
+    cat $DEFAULTS_FILE > $RUN_CMDS
+
+    LAYOUT=${1-basic}
+
+    LAYOUT_PATH="$HOME/.config/zellij/layouts/${LAYOUT}.kdl"
+    if [[ ! -f "$LAYOUT_PATH" ]]; then
+        LAYOUT_PATH="$SCRIPT_DIR/layouts/${LAYOUT}.kdl"
+    fi
+    if [[ ! -f "$LAYOUT_PATH" ]]; then
+        echo "Cannot find zellij layout $LAYOUT_PATH"
+        exit 1
+    fi
+
+    SESSION=lazysar
+    if zellij list-sessions | grep -q $SESSION; then
+        zellij attach $SESSION
+    else
+        zellij -s $SESSION -l "$LAYOUT_PATH"
+    fi
+    exit
+fi
+
+if [ "$1" = "client" ]; then
+    shift
+    PRESET=$1
+    shift
+
+    touch $RUN_CMDS
+
+    while read COMMANDS; do
+        if [ "$COMMANDS" == "STOP" ]; then
+            break
+        fi
+        eval "lazysar --preset=$PRESET" "$@" "--title='' $COMMANDS"
+    done < <(tail -n 1 -f $RUN_CMDS)
+    exit
+fi
+
+if [ "$1" = "cmd" ]; then
+    shift
+    while true; do
+        echo ">> Send params to panels (use history, <ENTER> for default refresh, STOP to exit): "
+        rlwrap -C lazysar $SCRIPT_PATH rlwrap || exit
+    done
+    exit
+fi
+
+if [ "$1" = "rlwrap" ]; then
+    shift
+    read COMMAND
+    if [ -z "$COMMAND" ]; then
+        COMMAND="$(cat "$DEFAULTS_FILE")"
+        echo "Using defaults from $DEFAULTS_FILE: $COMMAND"
+    fi
+    echo "$COMMAND" >> $RUN_CMDS
+    if [ "$COMMAND" = "STOP" ]; then
+        exit 1
+    fi
+    exit
+fi
+
+LC_ALL=C
+"${SCRIPT_DIR}/.venv/bin/python" "${SCRIPT_DIR}/lazysar.py" --presets-file="${PRESETS_FILE}" "$@"

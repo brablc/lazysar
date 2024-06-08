@@ -34,6 +34,8 @@ lazysar --ago=1 -- -i 300 -u
 
 Presets combine multiple parameters, like excluding, including columns, describing labels, ... to make the charts more readable.
 
+See (presets.json)[./presets.json]. File in `$HOME/.config/lazysar/presets.json` has precedence.
+
 ```sh
 # Show one chart
 lazysar --preset=cpu -- -i 300
@@ -44,10 +46,10 @@ lazysar -l | xargs -I{} lazysar --dev=sda --iface=eth1 --ago=1 --preset={} --hei
 
 ### Use panel
 
-Show multiple charts predefined in basic.kdl (`zellij` layout file).
+Show multiple charts predefined in (layouts/basic.kdl)[./layouts/basic.kdl] (`zellij` layout file). Layout will be searched first in `$HOME/.config/zellij/layouts/`.
 
 ```sh
-lazysar-panel
+lazysar panel [LAYOUT_NAME]
 ```
 ![image](https://github.com/brablc/lazysar/assets/841734/789a7a61-3b59-467e-af40-029cf8b92a70)
 

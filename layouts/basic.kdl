@@ -1,35 +1,34 @@
 layout  {
   pane_template name="lazysar" {
-      command "lazysar-client"
+      command "lazysar"
       close_on_exit true
   }
 
   pane split_direction="horizontal" {
     pane split_direction="vertical" {
       lazysar {
-        args "cpu"
+        args "client" "cpu"
         name "CPU Usage"
       }
       lazysar {
-        args "disk_bytes"
+        args "client" "disk_bytes"
         name "Disk I/O"
       }
     }
     pane split_direction="vertical" {
       lazysar {
-        args "memory"
+        args "client" "memory"
         name "Memory Usage"
       }
       lazysar {
-        args "network_bytes"
+        args "client" "network_bytes"
         name "Network I/O"
       }
     }
-    pane {
+    lazysar {
+        args "cmd"
         name "controller"
-        command "lazysar-cmd"
         size 5
-        close_on_exit true
         focus true
     }
     pane size=2 borderless=true {

@@ -82,9 +82,13 @@ parser.add_argument(
     help="Specify the time ago for sar",
 )
 parser.add_argument(
+    "--presets-file",
+    help="Presets file name",
+)
+parser.add_argument(
     "--preset",
     "-p",
-    help="Presets file name",
+    help="Presets name",
 )
 parser.add_argument(
     "--list-presets",
@@ -102,6 +106,8 @@ parser.add_argument(
 args, sar_args = parser.parse_known_args()
 
 presets_file = os.path.join(os.path.dirname(__file__), "presets.json")
+if args.presets_file:
+    presets_file = args.presets_file
 
 
 def load_presets():
