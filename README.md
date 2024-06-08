@@ -32,9 +32,13 @@ lazysar --ago=1 -- -i 300 -u
 
 ### Use presets
 
-Show all preset charts:
+Presets combine multiple parameters, like excluding, including columns, describing labels, ... to make the charts more readable.
 
 ```sh
+# Show one chart
+lazysar --preset=cpu -- -i 300
+
+# Show all charts
 lazysar -l | xargs -I{} lazysar --dev=sda --iface=eth1 --ago=1 --preset={} --height=30 -- -i 300
 ```
 
