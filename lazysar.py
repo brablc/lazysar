@@ -20,6 +20,10 @@ def extract_first_number(s):
     return float(match.group()) if match else None
 
 
+def float_preformatter_len(val):
+    return len("{:.2f}".format(val))
+
+
 colors = [
     "bright_cyan",
     "bright_yellow",
@@ -239,18 +243,18 @@ if not data_columns:
     exit(1)
 
 fig = plotille.Figure()
-fig.width = terminal_size.columns - 25 - (len(args.title) if args.title else 0)
-fig.height = args.height if args.height else terminal_size.lines - 9 - len(data_columns)
+fig.origin = False
 if args.x_label:
     fig.x_label = args.x_label
 if args.y_label:
     fig.y_label = args.y_label
+if terminal_size.columns < 64:
+    fig.x_label = fig.x_label[0]
 
 for i, (header, values) in enumerate(data_columns.items()):
     fig.plot(times, values, label=header, lc=colors[i % len(colors)])
 
 time_diff = times[-1] - times[0]
-
 if time_diff > timedelta(hours=23):
     start_time = times[0].replace(hour=0, minute=0, second=0)
     end_time = start_time + timedelta(hours=24)
@@ -264,19 +268,26 @@ y_max = (
 )
 fig.set_y_limits(min_=0, max_=y_max)
 
-fig.origin = False
+if y_max > 9999:
+    y_precision = 0
+else:
+    y_precision = 2
+y_width = 10
 
 
-def float_formatter(val, delta, chars=10, left=True):
-    return "{:6.2f}".format(val).center(chars)
+def float_formatter(val, delta, chars=None, left=True):
+    return f"{{:>{y_width}.{y_precision}f}}".format(val)
 
 
 fig.register_label_formatter(float, float_formatter)
 
+fig.width = terminal_size.columns - 9 - len(fig.x_label) - 3 - y_width - 2
+fig.height = args.height if args.height else terminal_size.lines - 9 - len(data_columns)
+
 
 def custom_x_tick_formatter(val, delta):
     dt = datetime.fromtimestamp(val)
-    return dt.strftime("%H:%M").center(10)
+    return dt.strftime("%H:%M").center(7)
 
 
 setattr(fig, "x_ticks_fkt", custom_x_tick_formatter)
