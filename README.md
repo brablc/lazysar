@@ -7,8 +7,10 @@ Visualize *sar/sysstats* data in multipane teminal with "zooming" possibility. A
 Prerequisites:
 
 - python3
-- https://zellij.dev/
 - `apt-get install sysstat` - obvious, you probably have this already running
+
+For panel support:
+- https://zellij.dev/
 - `apt-get install rlwrap` - to provide command line history
 
 Installation:
