@@ -7,21 +7,21 @@ layout  {
   pane split_direction="horizontal" {
     pane split_direction="vertical" {
       lazysar {
-        args "client" "cpu"
+        args "client" "--preset" "cpu"
         name "CPU Usage"
       }
       lazysar {
-        args "client" "disk_bytes"
+        args "client" "--preset" "disk_bytes"
         name "Disk I/O"
       }
     }
     pane split_direction="vertical" {
       lazysar {
-        args "client" "memory"
+        args "client" "--preset" "memory"
         name "Memory Usage"
       }
       lazysar {
-        args "client" "network_bytes"
+        args "client" "--preset" "network_bytes"
         name "Network I/O"
       }
     }

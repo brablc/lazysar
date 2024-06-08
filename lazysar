@@ -48,16 +48,13 @@ fi
 
 if [ "$1" = "client" ]; then
     shift
-    PRESET=$1
-    shift
-
     touch $RUN_CMDS
 
     while read COMMANDS; do
         if [ "$COMMANDS" == "STOP" ]; then
             break
         fi
-        eval "lazysar --preset=$PRESET" "$@" "--title='' $COMMANDS"
+        eval lazysar "$@" "--title='' $COMMANDS"
     done < <(tail -n 1 -f $RUN_CMDS)
     exit
 fi
