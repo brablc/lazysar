@@ -37,7 +37,7 @@ if [ "$1" = "panel" ]; then
         exit 1
     fi
 
-    SESSION=lazysar
+    SESSION=lazysar-$LAYOUT
     if zellij list-sessions | grep -q $SESSION; then
         zellij attach $SESSION
     else
