@@ -30,6 +30,7 @@ layout  {
         name "controller"
         size 5
         focus true
+        close_on_exit false
     }
     pane size=2 borderless=true {
       plugin location="zellij:status-bar"
