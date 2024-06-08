@@ -1,0 +1,59 @@
+layout {
+  pane_template name="lazysar" {
+      command "lazysar"
+      close_on_exit true
+  }
+  pane split_direction="horizontal" {
+    pane split_direction="vertical" {
+      lazysar {
+        args "client" "--preset" "cpu100"
+        name "CPU Usage mng"
+      }
+      lazysar {
+        args "client" "--preset" "cpu100" "--host" "node1"
+        name "CPU Usage node1"
+      }
+      lazysar {
+        args "client" "--preset" "cpu100" "--host" "node2"
+        name "CPU Usage node2"
+      }
+    }
+    pane split_direction="vertical" {
+      lazysar {
+        args "client" "--preset" "disk_bytes"
+        name "Disk I/O mng"
+      }
+      lazysar {
+        args "client" "--preset" "disk_bytes" "--host" "node1"
+        name "Disk I/O node1"
+      }
+      lazysar {
+        args "client" "--preset" "disk_bytes" "--host" "node2"
+        name "Disk I/O node2"
+      }
+    }
+    pane split_direction="vertical" {
+      lazysar {
+        args "client" "--preset" "network_bytes"
+        name "Network I/O mng"
+      }
+      lazysar {
+        args "client" "--preset" "network_bytes" "--host" "node1"
+        name "Network I/O node1"
+      }
+      lazysar {
+        args "client" "--preset" "network_bytes" "--host" "node2"
+        name "Network I/O node2"
+      }
+    }
+    lazysar {
+        args "cmd"
+        name "controller"
+        size 5
+        focus true
+    }
+    pane size=2 borderless=true {
+      plugin location="zellij:status-bar"
+    }
+  }
+}
