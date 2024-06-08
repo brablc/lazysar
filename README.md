@@ -1,6 +1,6 @@
 # lazysar
 
-Visualize *sar/sysstats* data in multipane teminal with "zooming" possibility. An alternative to kSar, sarplot.
+Visualize *sar/sysstats* data in multipane terminal with "zooming" possibility and multiple host support. An alternative to kSar, sarplot.
 
 ## Installation
 
@@ -22,7 +22,7 @@ git clone git@github.com:brablc/lazysar.git /usr/local/lib/
 
 ## Usage
 
-`lazysar` calls `sar` command to get data. It would pass parameters after `--` to sar. Additionally it would simplify selecting days by transforming `--ago N` to something like `-f /var/log/sysstat/sa$(date -d 'N days ago' +'%d')`.
+`lazysar` calls `sar` command to get data. It would pass parameters after `--` to sar. Additionally it would simplify selecting days by transforming `--ago N` to something like `-f /var/log/sysstat/sa$(date -d 'N days ago' +'%d')`. Use `--ago 0` for today.
 
 Some charts have multiple sets of data, namely disk and network. Use `--dev=sda` or `--iface=eth1` to select the right set.
 
@@ -53,7 +53,16 @@ Show multiple charts predefined in (layouts/basic.kdl)[./layouts/basic.kdl] (`ze
 ```sh
 lazysar panel [LAYOUT_NAME]
 ```
+
+#### Basic panel example:
 ![image](https://github.com/brablc/lazysar/assets/841734/789a7a61-3b59-467e-af40-029cf8b92a70)
+
+#### Multiple hosts zoomed to incident time:
+
+The basic example uses `cpu` preset, while mutliple hosts uses `cpu100` so the charts are comparable.
+
+![image](https://github.com/brablc/lazysar/assets/841734/0f350624-171b-4b3f-ba65-d5d96b0f6fcb)
+
 
 Use the bottom panel to send different set of parameters to all panes at once. Examples:
 
