@@ -97,6 +97,10 @@ parser.add_argument(
     help="List all presets",
 )
 parser.add_argument(
+    "--host",
+    help="Execute sar over ssh",
+)
+parser.add_argument(
     "--",
     dest="sar_args",
     nargs=argparse.REMAINDER,
@@ -155,9 +159,13 @@ terminal_size = shutil.get_terminal_size()
 
 ### Get data
 
+env_vars = os.environ.copy()
+env_vars["LC_ALL"] = "C"
 sar_cmd = ["sar"] + sar_args
+if args.host:
+    sar_cmd = ["ssh", "-n", "-T", args.host] + sar_cmd
 try:
-    process = subprocess.Popen(sar_cmd, stdout=subprocess.PIPE)
+    process = subprocess.Popen(sar_cmd, stdout=subprocess.PIPE, env=env_vars)
     stdout, stderr = process.communicate()
     if process.returncode != 0:
         print(f"Error: 'sar' command failed with exit code {process.returncode}")
@@ -169,7 +177,7 @@ except FileNotFoundError:
 
 lines = stdout.decode("utf-8").splitlines()
 
-filter = None
+filter_value = None
 
 # Prepare the data according to the awk script logic
 filtered_lines = []
@@ -180,17 +188,17 @@ for i, line in enumerate(lines):
     if i == 2:
         parts[0] = "Time"
         if (args.dev and parts[1] == "DEV") or (args.iface and parts[1] == "IFACE"):
-            filter = parts[1]
+            filter_value = parts[1]
     if i > 3 and parts[0] == "00:00:00":
         break
     if parts[0] == "Average:" or len(parts) < 2:
         continue
     if (
         i > 2
-        and filter
+        and filter_value
         and (
-            (filter == "DEV" and args.dev and args.dev != parts[1])
-            or (filter == "IFACE" and args.iface and args.iface != parts[1])
+            (filter_value == "DEV" and args.dev and args.dev != parts[1])
+            or (filter_value == "IFACE" and args.iface and args.iface != parts[1])
         )
     ):
         continue
