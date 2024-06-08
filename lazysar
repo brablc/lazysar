@@ -64,6 +64,7 @@ fi
 
 if [ "$1" = "cmd" ]; then
     shift
+    sleep 2
     while true; do
         echo ">> Send params to panels (use history, <ENTER> for default refresh, STOP to exit): "
         rlwrap -C lazysar $SCRIPT_PATH rlwrap || exit
