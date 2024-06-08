@@ -36,7 +36,7 @@ lazysar --ago=1 -- -i 300 -u
 
 Presets combine multiple parameters, like excluding, including columns, describing labels, ... to make the charts more readable.
 
-See (presets.json)[./presets.json]. File in `$HOME/.config/lazysar/presets.json` has precedence.
+See [presets.json](./presets.json). File in `$HOME/.config/lazysar/presets.json` has precedence.
 
 ```sh
 # Show one chart
@@ -48,23 +48,13 @@ lazysar -l | xargs -I{} lazysar --dev=sda --iface=eth1 --ago=1 --preset={} --hei
 
 ### Use panel
 
-Show multiple charts predefined in (layouts/basic.kdl)[./layouts/basic.kdl] (`zellij` layout file). Layout will be searched first in `$HOME/.config/zellij/layouts/`.
+Show multiple charts predefined in zellij layout format. Layout will be searched first in `$HOME/.config/zellij/layouts/` and if not found in project's `./layouts`.
 
 ```sh
 lazysar panel [LAYOUT_NAME]
 ```
 
-#### Basic panel example:
-![image](https://github.com/brablc/lazysar/assets/841734/789a7a61-3b59-467e-af40-029cf8b92a70)
-
-#### Multiple hosts zoomed to incident time:
-
-The basic example uses `cpu` preset, while mutliple hosts uses `cpu100` so the charts are comparable.
-
-![image](https://github.com/brablc/lazysar/assets/841734/0f350624-171b-4b3f-ba65-d5d96b0f6fcb)
-
-
-Use the bottom panel to send different set of parameters to all panes at once. Examples:
+Use the bottom panel to send different set of arguments to all panes (in all sessions!) at once. Examples:
 
 ```
 # today with interval 5 minutes
@@ -73,6 +63,20 @@ Use the bottom panel to send different set of parameters to all panes at once. E
 # yesterday with interval 1 minute in the time 06:00 to 07:00 - zooming ;-)
 --dev=sda --iface=eth1 --ago=1 -- -i 60 -s 06:00 -e 07:00
 ```
+
+#### Basic panel example:
+
+Uses [layouts/basic.kdl](./layouts/basic.kdl) - should work out of the box.
+
+![image](https://github.com/brablc/lazysar/assets/841734/789a7a61-3b59-467e-af40-029cf8b92a70)
+
+#### Multiple hosts zoomed to incident time:
+
+Uses [layouts/hosts.kdl](./layouts/hosts.kdl) - needs to ba adapted to fix host names (assumes `node1` and `node2`).
+
+The basic example uses `cpu` preset, while mutliple hosts uses `cpu100` so the charts are comparable.
+
+![image](https://github.com/brablc/lazysar/assets/841734/0f350624-171b-4b3f-ba65-d5d96b0f6fcb)
 
 ## Credits
 
