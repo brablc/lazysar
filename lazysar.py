@@ -48,6 +48,11 @@ parser.add_argument(
     help="Height",
 )
 parser.add_argument(
+    "--clear",
+    action="store_true",
+    help="Clear screen before",
+)
+parser.add_argument(
     "--x-label",
     default="Time",
     help="Label for the x-axis",
@@ -292,7 +297,9 @@ def custom_x_tick_formatter(val, delta):
 
 setattr(fig, "x_ticks_fkt", custom_x_tick_formatter)
 
-os.system("clear")
+
+if args.clear:
+    os.system("clear")
 if args.title:
     print(args.title)
 
