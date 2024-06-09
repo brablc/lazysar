@@ -38,7 +38,7 @@ if [ "$1" = "panel" ]; then
     fi
 
     SESSION=lazysar-$LAYOUT
-    if zellij list-sessions | grep -q $SESSION; then
+    if zellij list-sessions 2>/dev/null | grep -q $SESSION; then
         zellij attach -f $SESSION
     else
         zellij -s $SESSION -l "$LAYOUT_PATH"
