@@ -284,11 +284,18 @@ def float_formatter(val, delta, chars=None, left=True):
     return f"{{:>{y_width}.{y_precision}f}}".format(val)
 
 
+show_legend = len(headers) > 2 and terminal_size.lines >= 14
+
 fig.register_label_formatter(float, float_formatter)
 
-fig.width = terminal_size.columns - 9 - len(fig.x_label) - 3 - y_width - 2
-fig.height = (
-    args.height if args.height else terminal_size.lines - 10 - len(data_columns)
+fig.width = max(5, terminal_size.columns - 9 - len(fig.x_label) - 3 - y_width - 2)
+fig.height = max(
+    5,
+    (
+        args.height
+        if args.height
+        else terminal_size.lines - 4 - (len(headers) + 3 if show_legend else 0)
+    ),
 )
 
 
@@ -305,10 +312,4 @@ if args.clear:
 if args.title:
     print(args.title)
 
-if fig.width < 6:
-    print(
-        f"Error: terminal width {terminal_size.columns} too small, only {fig.width} left for chart area."
-    )
-    exit(1)
-
-print(fig.show(legend=(len(headers) > 2)))
+print(fig.show(legend=show_legend))
