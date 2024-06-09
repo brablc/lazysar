@@ -68,7 +68,7 @@ Use the bottom panel to send different set of arguments to all panes (in all ses
 
 Uses [layouts/basic.kdl](./layouts/basic.kdl) - should work out of the box.
 
-![image](https://github.com/brablc/lazysar/assets/841734/789a7a61-3b59-467e-af40-029cf8b92a70)
+![image](https://github.com/brablc/lazysar/assets/841734/57a5f5f1-811c-4cd8-8e9a-fa2c174b4279)
 
 #### Multiple hosts zoomed to incident time:
 
@@ -76,7 +76,7 @@ Uses [layouts/hosts.kdl](./layouts/hosts.kdl) - needs to ba adapted to fix host 
 
 The basic example uses `cpu` preset, while mutliple hosts uses `cpu100` so the charts are comparable.
 
-![image](https://github.com/brablc/lazysar/assets/841734/0f350624-171b-4b3f-ba65-d5d96b0f6fcb)
+![image](https://github.com/brablc/lazysar/assets/841734/d182e8f4-a0c7-4f1f-9a64-0e5e027f5e9f)
 
 ## Credits
 
