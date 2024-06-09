@@ -273,11 +273,11 @@ y_max = (
 )
 fig.set_y_limits(min_=0, max_=y_max)
 
+y_width = 10
 if y_max > 9999:
     y_precision = 0
 else:
     y_precision = 2
-y_width = 10
 
 
 def float_formatter(val, delta, chars=None, left=True):
@@ -287,7 +287,9 @@ def float_formatter(val, delta, chars=None, left=True):
 fig.register_label_formatter(float, float_formatter)
 
 fig.width = terminal_size.columns - 9 - len(fig.x_label) - 3 - y_width - 2
-fig.height = args.height if args.height else terminal_size.lines - 9 - len(data_columns)
+fig.height = (
+    args.height if args.height else terminal_size.lines - 10 - len(data_columns)
+)
 
 
 def custom_x_tick_formatter(val, delta):
@@ -302,5 +304,11 @@ if args.clear:
     os.system("clear")
 if args.title:
     print(args.title)
+
+if fig.width < 6:
+    print(
+        f"Error: terminal width {terminal_size.columns} too small, only {fig.width} left for chart area."
+    )
+    exit(1)
 
 print(fig.show(legend=(len(headers) > 2)))
