@@ -87,8 +87,7 @@ parser.add_argument(
 parser.add_argument(
     "--ago",
     "-a",
-    type=int,
-    help="Specify the time ago for sar",
+    help="Specify the time ago for sar, without unit its days. With 15m it would become today 15 minutes ago.",
 )
 parser.add_argument(
     "--presets-file",
@@ -161,7 +160,18 @@ exclude_columns = args.exclude.split(",") if args.exclude else []
 include_columns = args.include.split(",") if args.include else []
 
 if args.ago:
-    day = (datetime.now() - timedelta(days=args.ago)).strftime("%d")
+    ago_is_time = re.match(r"^(\d+)m$", args.ago, re.IGNORECASE)
+    if ago_is_time:
+        ago_days = 0
+        sar_args += [
+            "-s",
+            (datetime.now() - timedelta(minutes=int(ago_is_time.group(1)))).strftime(
+                "%H:%M"
+            ),
+        ]
+    else:
+        ago_days = int(args.ago)
+    day = (datetime.now() - timedelta(days=ago_days)).strftime("%d")
     sar_args += ["-f", f"/var/log/sysstat/sa{day}"]
 
 terminal_size = shutil.get_terminal_size()
