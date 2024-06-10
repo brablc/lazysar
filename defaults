@@ -1,1 +1,1 @@
---cpu=all --dev=sda --iface=eth1 --ago=1 -- -i 300
+--dev=sda --iface=eth1 --ago=1

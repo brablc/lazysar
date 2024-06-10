@@ -6,6 +6,7 @@ import os
 import re
 import shutil
 import subprocess
+import time
 
 from dataclasses import dataclass, field
 from typing import List, Optional
@@ -50,6 +51,9 @@ class Args:
     include: Optional[str] = None
     exclude: Optional[str] = None
     ago: Optional[str] = None
+    start: str = "00:00:00"
+    end: str = "23:59:59"
+    loop: Optional[int] = None
     presets_file: Optional[str] = None
     preset: Optional[str] = None
     list_presets: bool = False
@@ -58,11 +62,15 @@ class Args:
 
 
 class LazySar:
+    Y_LEGEND_WIDTH = 10
     sar_args = []
     exclude_columns = []
     include_columns = []
 
     def __init__(self) -> None:
+        self.get_terminal_size()
+
+    def get_terminal_size(self):
         self.terminal_size = shutil.get_terminal_size()
 
     def parser_args(self):
@@ -124,6 +132,23 @@ class LazySar:
             help="Specify the time ago for sar, without unit its days. With 15m it would become today 15 minutes ago.",
         )
         parser.add_argument(
+            "--start",
+            "-s",
+            default="00:00:00",
+            help="Start time HH:MM",
+        )
+        parser.add_argument(
+            "--end",
+            "-e",
+            default="23:59:59",
+            help="End time HH:MM",
+        )
+        parser.add_argument(
+            "--loop",
+            type=int,
+            help="Run in a loop with given time interval in seconds",
+        )
+        parser.add_argument(
             "--presets-file",
             help="Presets file name",
         )
@@ -164,6 +189,9 @@ class LazySar:
             include=parsed_args.include,
             exclude=parsed_args.exclude,
             ago=parsed_args.ago,
+            start=parsed_args.start,
+            end=parsed_args.end,
+            loop=parsed_args.loop,
             presets_file=parsed_args.presets_file,
             preset=parsed_args.preset,
             list_presets=parsed_args.list_presets,
@@ -211,25 +239,40 @@ class LazySar:
         self.exclude_columns = self.args.exclude.split(",") if self.args.exclude else []
         self.include_columns = self.args.include.split(",") if self.args.include else []
 
+    def get_time_sar_args(self):
+        sar_args = []
         if self.args.ago:
             ago_is_time = re.match(r"^(\d+)m$", self.args.ago, re.IGNORECASE)
             if ago_is_time:
                 ago_days = 0
-                self.sar_args += [
-                    "-s",
-                    (
-                        datetime.now() - timedelta(minutes=int(ago_is_time.group(1)))
-                    ).strftime("%H:%M"),
-                ]
+                self.args.start = (
+                    datetime.now() - timedelta(minutes=int(ago_is_time.group(1)))
+                ).strftime("%H:%M:%S")
+                self.args.end = datetime.now().strftime("%H:%M:%S")
             else:
                 ago_days = int(self.args.ago)
             day = (datetime.now() - timedelta(days=ago_days)).strftime("%d")
-            self.sar_args += ["-f", f"/var/log/sysstat/sa{day}"]
+            sar_args += ["-f", f"/var/log/sysstat/sa{day}"]
+        if not self.args.end:
+            self.args.end = "23:59:59"
 
-    def exec_sar(self):
+        sar_args += ["-s", self.args.start]
+        sar_args += ["-e", self.args.end]
+
+        total_seconds = (
+            datetime.strptime(self.args.end, "%H:%M:%S")
+            - datetime.strptime(self.args.start, "%H:%M:%S")
+        ).total_seconds()
+
+        interval = int(total_seconds / self.get_chart_width() / 3)
+        if interval:
+            sar_args += ["-i", str(interval)]
+        return sar_args
+
+    def exec_sar(self, time_sar_args):
         env_vars = os.environ.copy()
         env_vars["LC_ALL"] = "C"
-        sar_cmd = ["sar"] + self.sar_args
+        sar_cmd = ["sar"] + self.sar_args + time_sar_args
         if self.args.host:
             sar_cmd = ["ssh", "-n", "-T", self.args.host] + sar_cmd
         try:
@@ -237,7 +280,7 @@ class LazySar:
             stdout, stderr = process.communicate()
             if process.returncode != 0:
                 print(
-                    f"Error: 'sar' command failed with exit code {process.returncode}"
+                    f"Error: 'sar' command failed with exit code {process.returncode}. Command was: {sar_cmd}"
                 )
                 print(stderr)  # Print the error message from stderr
                 exit(1)
@@ -331,15 +374,29 @@ class LazySar:
 
         return [headers, times, data_columns]
 
+    def get_x_label(self):
+        label = self.args.x_label
+        if self.terminal_size.columns < 64:
+            label = label[0]
+        return label
+
+    def get_chart_width(self):
+        return max(
+            5,
+            self.terminal_size.columns
+            - 9
+            - len(self.get_x_label())
+            - 3
+            - self.Y_LEGEND_WIDTH
+            - 2,
+        )
+
     def get_chart_output(self, headers, times, data_columns):
         fig = plotille.Figure()
         fig.origin = False
-        if self.args.x_label:
-            fig.x_label = self.args.x_label
+        fig.x_label = self.get_x_label()
         if self.args.y_label:
             fig.y_label = self.args.y_label
-        if self.terminal_size.columns < 64:
-            fig.x_label = fig.x_label[0]
 
         for i, (header, values) in enumerate(data_columns.items()):
             fig.plot(times, values, label=header, lc=colors[i % len(colors)])
@@ -360,7 +417,7 @@ class LazySar:
         )
         fig.set_y_limits(min_=0, max_=y_max)
 
-        y_width = 10
+        y_width = self.Y_LEGEND_WIDTH
         if y_max > 9999:
             y_precision = 0
         else:
@@ -373,9 +430,7 @@ class LazySar:
 
         fig.register_label_formatter(float, float_formatter)
 
-        fig.width = max(
-            5, self.terminal_size.columns - 9 - len(fig.x_label) - 3 - y_width - 2
-        )
+        fig.width = self.get_chart_width()
         fig.height = max(
             5,
             (
@@ -398,26 +453,39 @@ class LazySar:
     def run(self):
         self.parser_args()
 
-        lines = self.exec_sar()
-        filtered_lines = self.filter_data(lines)
-        [headers, times, data_columns] = self.process_data(filtered_lines)
+        def run_internal():
+            self.get_terminal_size()
+            time_sar_args = self.get_time_sar_args()
 
-        if not times:
-            print("Error: no data matches.")
-            exit(1)
+            lines = self.exec_sar(time_sar_args)
 
-        if not data_columns:
-            print("Error: no numerical data left.")
-            exit(1)
+            filtered_lines = self.filter_data(lines)
+            [headers, times, data_columns] = self.process_data(filtered_lines)
 
-        output = self.get_chart_output(headers, times, data_columns)
+            if not times:
+                print("Error: no data matches.")
+                exit(1)
 
-        if self.args.clear:
-            os.system("clear")
-        if self.args.title:
-            print(self.args.title)
+            if not data_columns:
+                print("Error: no numerical data left.")
+                exit(1)
 
-        print(output)
+            output = self.get_chart_output(headers, times, data_columns)
+
+            if self.args.clear:
+                os.system("clear")
+            if self.args.title:
+                print(self.args.title)
+
+            print(output)
+
+        if self.args.loop:
+            while True:
+                run_internal()
+                time.sleep(self.args.loop)
+
+        else:
+            run_internal()
 
 
 sar_chart = LazySar()

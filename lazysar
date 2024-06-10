@@ -3,7 +3,7 @@
 SCRIPT_PATH=$(readlink -f $0)
 SCRIPT_DIR=${SCRIPT_PATH%/*}
 RUN_DIR=/var/run/lazysar
-RUN_CMDS="$RUN_DIR/commands"
+RUN_CMDS="$RUN_DIR/${USER}-commands"
 DEFAULTS_FILE="$HOME/.config/lazysar/defaults"
 if [ ! -f "$DEFAULTS_FILE" ]; then
     DEFAULTS_FILE="$SCRIPT_DIR/defaults"
@@ -25,9 +25,18 @@ if [ "$1" = "panel" ]; then
     check_zellij
     mkdir -p $RUN_DIR
 
-    cat $DEFAULTS_FILE > $RUN_CMDS
+    if [[ "$1" =~ ^- ]]; then
+        LAYOUT=basic
+    else
+        LAYOUT=${1-basic}
+        shift
+    fi
 
-    LAYOUT=${1-basic}
+    if [ $# -ne 0 ]; then
+        printf '%s ' "$@" | sed 's/ $/\n/' > $RUN_CMDS
+    else
+        cat $DEFAULTS_FILE > $RUN_CMDS
+    fi
 
     LAYOUT_PATH="$HOME/.config/zellij/layouts/${LAYOUT}.kdl"
     if [[ ! -f "$LAYOUT_PATH" ]]; then
@@ -60,10 +69,15 @@ if [ "$1" = "client" ]; then
     exit
 fi
 
+function stop_clients() {
+    echo STOP > $RUN_CMDS
+    zellij action close-tab
+}
+
 if [ "$1" = "cmd" ]; then
     shift
     sleep 2
-    trap "echo STOP > $RUN_CMDS" EXIT
+    trap stop_clients EXIT
     if command -v rlwrap >/dev/null; then
         (sleep 0.1 && zellij action write-chars -- "$(cat "$DEFAULTS_FILE")" ) &
         while true; do
@@ -84,16 +98,6 @@ if [ "$1" = "rlwrap" ]; then
     if [ -z "$COMMAND" ]; then
         COMMAND="$(cat "$DEFAULTS_FILE")"
         echo "Using defaults from $DEFAULTS_FILE: $COMMAND"
-    fi
-    if [[ "$COMMAND" =~ ^LOOP ]]; then
-        SLEEP=5
-        echo "Entering loop with ${SLEEP}s refresh ..."
-        trap "echo 'Exiting ...'" INT
-        while true; do
-            echo "${COMMAND/LOOP /}" >> $RUN_CMDS
-            sleep $SLEEP || break
-        done
-        COMMAND="STOP"
     fi
     echo "$COMMAND" >> $RUN_CMDS
     if [ "$COMMAND" = "STOP" ]; then

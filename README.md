@@ -25,15 +25,15 @@ git clone git@github.com:brablc/lazysar.git /usr/local/lib/lazysar
 
 ## Usage
 
-`lazysar` calls `sar` command to get data. It would pass parameters after `--` to sar. Additionally it would simplify selecting days by transforming `--ago=N` to something like `-f /var/log/sysstat/sa$(date -d 'N days ago' +'%d')`. Use `--ago 0` for today. You can specify minutes too like `--ago=15m`, this would select current dat and pass `-s` with time 15 minutes ago.
+`lazysar` calls `sar` command to get data. It would pass all parameters unknown to it to `sar`. Additionally it would simplify selecting days by transforming `--ago=N` to something like `-f /var/log/sysstat/sa$(date -d 'N days ago' +'%d')`. You can specify minutes ago too `--ago=15m`, this would select current date and pass `-s` with time 15 minutes ago.
 
 Some charts have multiple sets of data, namely cpu, disk and network. Use `--cpu=all` (requires `-P` if not for all), `--dev=sda` or `--iface=eth1` to select the right set.
 
 ### Ad-hoc use
 
 ```sh
-lazysar --ago=1 -- -i 300 -u
-lazysar --ago=15m -- -i 5 -u
+lazysar --ago=1
+lazysar --ago=15m
 ```
 
 ### Use presets
@@ -44,10 +44,10 @@ See [presets.json](./presets.json). File in `$HOME/.config/lazysar/presets.json`
 
 ```sh
 # Show one chart
-lazysar --preset=cpu -- -i 300
+lazysar --preset=cpu
 
 # Show all charts
-lazysar -l | xargs -I{} lazysar --dev=sda --iface=eth1 --ago=1 --preset={} --height=30 -- -i 300
+lazysar -l | xargs -I{} lazysar --dev=sda --iface=eth1 --ago=1 --preset={} --height=30
 ```
 
 ### Use panel
@@ -55,20 +55,21 @@ lazysar -l | xargs -I{} lazysar --dev=sda --iface=eth1 --ago=1 --preset={} --hei
 Show multiple charts predefined in zellij layout format. Layout will be searched first in `$HOME/.config/zellij/layouts/` and if not found in project's `./layouts`.
 
 ```sh
-lazysar panel [LAYOUT_NAME]
+lazysar panel [LAYOUT_NAME] [DEFAULTS...]
+
+# start panel and refresh ever 5 seconds
+lazysar panel basic --loop=5
 ```
 
 Use the bottom panel to send different set of arguments to all panes (in all sessions!) at once. Examples:
 
 ```
-# today with interval 5 minutes
---dev=sda --iface=eth1 --ago=0 -- -i 300
+# today
+--dev=sda --iface=eth1
 
-# yesterday with interval 1 minute in the time 06:00 to 07:00 - zooming ;-)
---dev=sda --iface=eth1 --ago=1 -- -i 60 -s 06:00 -e 07:00
+# yesterday - "zommed" to time 06:00 to 07:00
+--dev=sda --iface=eth1 --ago=1 -s 06:00 -e 07:00
 
-# loop with last 15 minutes
-LOOP --dev=sda --iface=eth1 --ago=15m -- -i 5
 ```
 
 #### Basic panel example:
