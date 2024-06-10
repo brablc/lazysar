@@ -102,4 +102,8 @@ if [ "$1" = "rlwrap" ]; then
     exit
 fi
 
+if [ ! -d "${SCRIPT_DIR}/.venv/bin" ]; then
+    echo "Python virtual environment not setup properly, did you run install.sh?"
+    exit 1
+fi
 "${SCRIPT_DIR}/.venv/bin/python" "${SCRIPT_DIR}/lazysar.py" --presets-file="${PRESETS_FILE}" "$@"
