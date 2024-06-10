@@ -69,6 +69,10 @@ parser.add_argument(
     help="Max value for y-axis",
 )
 parser.add_argument(
+    "--cpu",
+    help="Filter on CPU column if present",
+)
+parser.add_argument(
     "--dev",
     help="Filter on DEV column if present",
 )
@@ -206,7 +210,11 @@ for i, line in enumerate(lines):
     parts = line.split()
     if i == 2:
         parts[0] = "Time"
-        if (args.dev and parts[1] == "DEV") or (args.iface and parts[1] == "IFACE"):
+        if (
+            (args.cpu and parts[1] == "CPU")
+            or (args.dev and parts[1] == "DEV")
+            or (args.iface and parts[1] == "IFACE")
+        ):
             filter_value = parts[1]
     if i > 3 and parts[0] == "00:00:00":
         break
@@ -216,7 +224,8 @@ for i, line in enumerate(lines):
         i > 2
         and filter_value
         and (
-            (filter_value == "DEV" and args.dev and args.dev != parts[1])
+            (filter_value == "CPU" and args.cpu and args.cpu != parts[1])
+            or (filter_value == "DEV" and args.dev and args.dev != parts[1])
             or (filter_value == "IFACE" and args.iface and args.iface != parts[1])
         )
     ):
@@ -268,6 +277,10 @@ if terminal_size.columns < 64:
 
 for i, (header, values) in enumerate(data_columns.items()):
     fig.plot(times, values, label=header, lc=colors[i % len(colors)])
+
+if not times:
+    print("Error: no data matches.")
+    exit(1)
 
 time_diff = times[-1] - times[0]
 if time_diff > timedelta(hours=23):
