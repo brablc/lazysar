@@ -11,12 +11,15 @@ Prerequisites:
 
 For panel support:
 - https://zellij.dev/
+```sh
+curl -L https://github.com/zellij-org/zellij/releases/latest/download/zellij-x86_64-unknown-linux-musl.tar.gz | tar xvz --no-same-owner && mv -v zellij /usr/local/bin
+```
 - `apt-get install rlwrap` - (optional) to provide command line history
 
 Installation:
 
 ```sh
-git clone git@github.com:brablc/lazysar.git /usr/local/lib/
+git clone git@github.com:brablc/lazysar.git /usr/local/lib/lazysar
 /usr/local/lib/lazysar/install.sh
 ```
 
