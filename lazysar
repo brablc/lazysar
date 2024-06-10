@@ -23,6 +23,7 @@ function check_zellij() {
 if [ "$1" = "panel" ]; then
     shift
     check_zellij
+    mkdir -p $RUN_DIR
 
     cat $DEFAULTS_FILE > $RUN_CMDS
 
