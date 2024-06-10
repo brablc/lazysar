@@ -64,7 +64,7 @@ if [ "$1" = "cmd" ]; then
     sleep 2
     trap "echo STOP > $RUN_CMDS" EXIT
     if command -v rlwrap >/dev/null; then
-        (sleep 1 && zellij action write-chars -- "$(cat "$DEFAULTS_FILE")" ) &
+        (sleep 0.1 && zellij action write-chars -- "$(cat "$DEFAULTS_FILE")" ) &
         while true; do
             echo "Send args to panels (use history C-r, C-c to exit):"
             rlwrap -C lazysar $SCRIPT_PATH rlwrap || exit
@@ -83,6 +83,16 @@ if [ "$1" = "rlwrap" ]; then
     if [ -z "$COMMAND" ]; then
         COMMAND="$(cat "$DEFAULTS_FILE")"
         echo "Using defaults from $DEFAULTS_FILE: $COMMAND"
+    fi
+    if [[ "$COMMAND" =~ ^LOOP ]]; then
+        SLEEP=5
+        echo "Entering loop with ${SLEEP}s refresh ..."
+        trap "echo 'Exiting ...'" INT
+        while true; do
+            echo "${COMMAND/LOOP /}" >> $RUN_CMDS
+            sleep $SLEEP || break
+        done
+        COMMAND="STOP"
     fi
     echo "$COMMAND" >> $RUN_CMDS
     if [ "$COMMAND" = "STOP" ]; then

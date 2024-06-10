@@ -188,7 +188,7 @@ try:
     stdout, stderr = process.communicate()
     if process.returncode != 0:
         print(f"Error: 'sar' command failed with exit code {process.returncode}")
-        print(stderr.decode("utf-8"))  # Print the error message from stderr
+        print(stderr)  # Print the error message from stderr
         exit(1)
 except FileNotFoundError:
     print("Error: 'sar' command not found. Please install sysstat package.")

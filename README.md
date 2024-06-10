@@ -62,6 +62,9 @@ Use the bottom panel to send different set of arguments to all panes (in all ses
 
 # yesterday with interval 1 minute in the time 06:00 to 07:00 - zooming ;-)
 --dev=sda --iface=eth1 --ago=1 -- -i 60 -s 06:00 -e 07:00
+
+# loop with last 15 minutes
+LOOP --dev=sda --iface=eth1 --ago=15m -- -i 5
 ```
 
 #### Basic panel example:
