@@ -62,12 +62,17 @@ fi
 if [ "$1" = "cmd" ]; then
     shift
     sleep 2
-    (sleep 1 && zellij action write-chars -- "$(cat "$DEFAULTS_FILE")" ) &
     trap "echo STOP > $RUN_CMDS" EXIT
-    while true; do
-        echo "Send args to panels (use history C-r, C-c to exit):"
-        rlwrap -C lazysar $SCRIPT_PATH rlwrap || exit
-    done
+    if command -v rlwrap >/dev/null; then
+        (sleep 1 && zellij action write-chars -- "$(cat "$DEFAULTS_FILE")" ) &
+        while true; do
+            echo "Send args to panels (use history C-r, C-c to exit):"
+            rlwrap -C lazysar $SCRIPT_PATH rlwrap || exit
+        done
+    else
+        (sleep 1 && zellij action write-chars -- "echo \"$(cat "$DEFAULTS_FILE")\" > $RUN_CMDS" ) &
+        $SHELL
+    fi
     exit
 fi
 

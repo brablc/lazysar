@@ -11,7 +11,7 @@ Prerequisites:
 
 For panel support:
 - https://zellij.dev/
-- `apt-get install rlwrap` - to provide command line history
+- `apt-get install rlwrap` - (optional) to provide command line history
 
 Installation:
 
