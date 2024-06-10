@@ -306,10 +306,11 @@ def custom_x_tick_formatter(val, delta):
 
 setattr(fig, "x_ticks_fkt", custom_x_tick_formatter)
 
+output = fig.show(legend=show_legend)
 
 if args.clear:
     os.system("clear")
 if args.title:
     print(args.title)
 
-print(fig.show(legend=show_legend))
+print(output)
