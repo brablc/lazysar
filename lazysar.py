@@ -42,7 +42,6 @@ class Args:
     title: Optional[str] = None
     height: Optional[int] = None
     clear: bool = False
-    x_label: str = "Time"
     y_label: Optional[str] = None
     y_max: Optional[int] = None
     cpu: Optional[str] = None
@@ -89,11 +88,6 @@ class LazySar:
             "--clear",
             action="store_true",
             help="Clear screen before",
-        )
-        parser.add_argument(
-            "--x-label",
-            default="Time",
-            help="Label for the x-axis",
         )
         parser.add_argument(
             "--y-label",
@@ -180,7 +174,6 @@ class LazySar:
             title=parsed_args.title,
             height=parsed_args.height,
             clear=parsed_args.clear,
-            x_label=parsed_args.x_label,
             y_label=parsed_args.y_label,
             y_max=parsed_args.y_max,
             cpu=parsed_args.cpu,
@@ -374,27 +367,16 @@ class LazySar:
 
         return [headers, times, data_columns]
 
-    def get_x_label(self):
-        label = self.args.x_label
-        if self.terminal_size.columns < 64:
-            label = label[0]
-        return label
-
     def get_chart_width(self):
         return max(
             5,
-            self.terminal_size.columns
-            - 9
-            - len(self.get_x_label())
-            - 3
-            - self.Y_LEGEND_WIDTH
-            - 2,
+            self.terminal_size.columns - self.Y_LEGEND_WIDTH - 11,
         )
 
     def get_chart_output(self, headers, times, data_columns):
         fig = plotille.Figure()
         fig.origin = False
-        fig.x_label = self.get_x_label()
+        fig.x_label = "t"
         if self.args.y_label:
             fig.y_label = self.args.y_label
 
