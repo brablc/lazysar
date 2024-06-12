@@ -27,7 +27,7 @@ git clone git@github.com:brablc/lazysar.git /usr/local/lib/lazysar
 
 `lazysar` calls `sar` command to get data. It would pass all parameters unknown to it to `sar`. Additionally it would simplify selecting days by transforming `--ago=N` to something like `-f /var/log/sysstat/sa$(date -d 'N days ago' +'%d')`. You can specify minutes ago too `--ago=15m`, this would select current date and pass `-s` with time 15 minutes ago.
 
-Some charts have multiple sets of data, namely cpu, disk and network. Use `--cpu=all` (requires `-P` if not for all), `--dev=sda` or `--iface=eth1` to select the right set.
+Some charts have multiple sets of data, namely disk and network. Use `--dev=sda` or `--iface=eth1` to select the right set. For cpu use sar's arguments `-P 0` (to select CPU 0), try with `lazysar panel cpu4`.
 
 ### Ad-hoc use
 

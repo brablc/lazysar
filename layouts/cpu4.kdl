@@ -1,0 +1,38 @@
+layout  {
+  pane_template name="lazysar" {
+      command "lazysar"
+      close_on_exit true
+  }
+
+  pane split_direction="horizontal" {
+    lazysar {
+      args "client" "--preset" "cpu100"
+      name "CPU Usage"
+    }
+    lazysar {
+      args "client" "--preset" "cpu100" "-P" "0"
+      name "CPU 0 Usage"
+    }
+    lazysar {
+      args "client" "--preset" "cpu100" "-P" "1"
+      name "CPU 1 Usage"
+    }
+    lazysar {
+      args "client" "--preset" "cpu100" "-P" "2"
+      name "CPU 2 Usage"
+    }
+    lazysar {
+      args "client" "--preset" "cpu100" "-P" "3"
+      name "CPU 3 Usage"
+    }
+    lazysar {
+        args "cmd"
+        name "controller"
+        size 5
+        focus true
+    }
+    pane size=2 borderless=true {
+      plugin location="zellij:status-bar"
+    }
+  }
+}

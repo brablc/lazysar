@@ -44,7 +44,6 @@ class Args:
     clear: bool = False
     y_label: Optional[str] = None
     y_max: Optional[int] = None
-    cpu: Optional[str] = None
     dev: Optional[str] = None
     iface: Optional[str] = None
     include: Optional[str] = None
@@ -99,10 +98,6 @@ class LazySar:
             type=int,
             default=None,
             help="Max value for y-axis",
-        )
-        parser.add_argument(
-            "--cpu",
-            help="Filter on CPU column if present",
         )
         parser.add_argument(
             "--dev",
@@ -176,7 +171,6 @@ class LazySar:
             clear=parsed_args.clear,
             y_label=parsed_args.y_label,
             y_max=parsed_args.y_max,
-            cpu=parsed_args.cpu,
             dev=parsed_args.dev,
             iface=parsed_args.iface,
             include=parsed_args.include,
@@ -294,10 +288,8 @@ class LazySar:
             parts = line.split()
             if i == 2:
                 parts[0] = "Time"
-                if (
-                    (self.args.cpu and parts[1] == "CPU")
-                    or (self.args.dev and parts[1] == "DEV")
-                    or (self.args.iface and parts[1] == "IFACE")
+                if (self.args.dev and parts[1] == "DEV") or (
+                    self.args.iface and parts[1] == "IFACE"
                 ):
                     filter_value = parts[1]
             if i > 3 and parts[0] == "00:00:00":
@@ -309,11 +301,6 @@ class LazySar:
                 and filter_value
                 and (
                     (
-                        filter_value == "CPU"
-                        and self.args.cpu
-                        and self.args.cpu != parts[1]
-                    )
-                    or (
                         filter_value == "DEV"
                         and self.args.dev
                         and self.args.dev != parts[1]
