@@ -58,7 +58,8 @@ Show multiple charts predefined in zellij layout format. Layout will be searched
 lazysar panel [LAYOUT_NAME] [DEFAULTS...]
 
 # start panel and refresh ever 5 seconds
-lazysar panel basic --loop=5
+lazysar panel --loop=5
+lazysar panel --host=node1
 ```
 
 Use the bottom panel to send different set of arguments to all panes (in all sessions!) at once. Examples:
