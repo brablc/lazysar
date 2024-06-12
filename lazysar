@@ -65,7 +65,7 @@ if [ "$1" = "client" ]; then
             break
         fi
         eval lazysar "$@" "--title='' $COMMANDS"
-    done < <(tail -n 1 -f $RUN_CMDS)
+    done < <(tail -n 1 -f $RUN_CMDS 2>/dev/null)
     exit
 fi
 
@@ -77,7 +77,7 @@ function stop_clients() {
 if [ "$1" = "cmd" ]; then
     shift
     sleep 2
-    LAST_COMMAND=$(tail -1 $RUN_CMDS)
+    LAST_COMMAND=$(tail -1 $RUN_CMDS >/dev/null)
     trap stop_clients EXIT
     if command -v rlwrap >/dev/null; then
         (sleep 0.1 && zellij action write-chars -- "$LAST_COMMAND" ) &
