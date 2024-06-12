@@ -60,7 +60,7 @@ When panelized `lazysar` will show legend on top, out of the screen to maximize 
 lazysar panel [LAYOUT_NAME] [DEFAULTS...]
 
 # start panel and refresh ever 5 seconds
-lazysar panel --loop=5
+lazysar panel --refresh=5
 lazysar panel --host=node1
 ```
 

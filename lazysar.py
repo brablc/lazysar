@@ -1,5 +1,6 @@
 import argparse
 import csv
+import curses
 import plotille
 import json
 import os
@@ -26,6 +27,26 @@ def float_preformatter_len(val):
     return len("{:.2f}".format(val))
 
 
+ANSI_TO_CURSES_COLOR_MAP = {
+    0: 0,  # Default
+    30: curses.COLOR_BLACK,
+    31: curses.COLOR_RED,
+    32: curses.COLOR_GREEN,
+    33: curses.COLOR_YELLOW,
+    34: curses.COLOR_BLUE,
+    35: curses.COLOR_MAGENTA,
+    36: curses.COLOR_CYAN,
+    37: curses.COLOR_WHITE,
+    90: curses.COLOR_BLACK + 8,  # Bright black
+    91: curses.COLOR_RED + 8,
+    92: curses.COLOR_GREEN + 8,
+    93: curses.COLOR_YELLOW + 8,
+    94: curses.COLOR_BLUE + 8,
+    95: curses.COLOR_MAGENTA + 8,
+    96: curses.COLOR_CYAN + 8,
+    97: curses.COLOR_WHITE + 8,
+}
+
 colors = [
     "bright_cyan",
     "bright_yellow",
@@ -39,9 +60,9 @@ colors = [
 
 @dataclass
 class Args:
+    verbose: bool = False
     title: Optional[str] = None
     height: Optional[int] = None
-    clear: bool = False
     y_label: Optional[str] = None
     y_max: Optional[int] = None
     dev: Optional[str] = None
@@ -51,7 +72,7 @@ class Args:
     ago: Optional[str] = None
     start: str = "00:00:00"
     end: str = "23:59:59"
-    loop: Optional[int] = None
+    refresh: Optional[int] = None
     presets_file: Optional[str] = None
     preset: Optional[str] = None
     list_presets: bool = False
@@ -77,6 +98,11 @@ class LazySar:
     def parser_args(self):
         parser = argparse.ArgumentParser(description="Plot SAR data")
         parser.add_argument(
+            "--verbose",
+            action="store_true",
+            help="Verbose mode",
+        )
+        parser.add_argument(
             "--title",
             default=None,
             help="Title of the plot",
@@ -85,11 +111,6 @@ class LazySar:
             "--height",
             type=int,
             help="Height",
-        )
-        parser.add_argument(
-            "--clear",
-            action="store_true",
-            help="Clear screen before",
         )
         parser.add_argument(
             "--y-label",
@@ -136,9 +157,9 @@ class LazySar:
             help="End time HH:MM",
         )
         parser.add_argument(
-            "--loop",
+            "--refresh",
             type=int,
-            help="Run in a loop with given time interval in seconds",
+            help="Refresh every given number of seconds",
         )
         parser.add_argument(
             "--presets-file",
@@ -169,9 +190,9 @@ class LazySar:
         parsed_args, self.sar_args = parser.parse_known_args()
 
         self.args = Args(
+            verbose=parsed_args.verbose,
             title=parsed_args.title,
             height=parsed_args.height,
-            clear=parsed_args.clear,
             y_label=parsed_args.y_label,
             y_max=parsed_args.y_max,
             dev=parsed_args.dev,
@@ -181,7 +202,7 @@ class LazySar:
             ago=parsed_args.ago,
             start=parsed_args.start,
             end=parsed_args.end,
-            loop=parsed_args.loop,
+            refresh=parsed_args.refresh,
             presets_file=parsed_args.presets_file,
             preset=parsed_args.preset,
             list_presets=parsed_args.list_presets,
@@ -421,7 +442,8 @@ class LazySar:
                 if self.args.height
                 else self.terminal_size.lines
                 - 4
-                - (len(headers) + 3 if show_legend and not self.panelized else 0)
+                - (1 if self.args.title else 0)
+                - (len(headers) + 3 if show_legend and not self.panelized else 1)
             ),
         )
 
@@ -455,37 +477,77 @@ class LazySar:
 
             output = self.get_chart_output(headers, times, data_columns)
 
-            if self.args.clear:
-                os.system("clear")
-            if self.args.title:
-                print(self.args.title)
+            chart_output = []
+            legend_output = []
+            legend_found = False
+            for line in output.splitlines():
+                if not len(line):
+                    continue
+                if line.startswith("Legend:"):
+                    legend_found = True
+                if legend_found:
+                    legend_output.append(line)
+                else:
+                    chart_output.append(line)
 
-            if self.panelized:
-                chart_output = []
-                legend_output = []
-                legend_found = False
-                for line in output.splitlines():
-                    if not len(line):
-                        continue
-                    if line.startswith("Legend:"):
-                        legend_found = True
-                    if legend_found:
-                        legend_output.append(line)
-                    else:
-                        chart_output.append(line)
-                output = (
-                    "\n".join(legend_output) + "\n\n" + "\n".join(chart_output).strip()
-                )
+            return ["\n".join(chart_output), "\n".join(legend_output)]
 
-            print(output)
+        [output, legend] = run_internal()
 
-        if self.args.loop:
-            while True:
-                run_internal()
-                time.sleep(self.args.loop)
+        if self.args.refresh:
+            stdscr = curses.initscr()
+            curses.noecho()
+            curses.cbreak()
+            curses.start_color()
+            curses.use_default_colors()
+            for ansi_code, curses_color in ANSI_TO_CURSES_COLOR_MAP.items():
+                curses.init_pair(ansi_code, curses_color, -1)
+
+            stdscr.keypad(True)
+
+            def addcurses(row, col, data):
+                for i, line in enumerate(data.splitlines()):
+                    x_pos = 0
+                    current_color = 0
+                    j = 0
+
+                    while j < len(line):
+                        char = line[j]
+                        if char == "\033":
+                            ansi_code = ""
+                            j += 2
+                            while line[j] != "m":
+                                ansi_code += line[j]
+                                j += 1
+                            current_color = int(ansi_code)
+                            j += 1
+                            continue
+
+                        stdscr.addstr(
+                            row + i, col + x_pos, char, curses.color_pair(current_color)
+                        )
+                        x_pos += 1
+                        j += 1
+
+            try:
+                while True:
+                    addcurses(0, 0, output)
+                    addcurses(2, 13, legend)
+                    stdscr.refresh()
+                    time.sleep(self.args.refresh)
+                    [output, legend] = run_internal()
+            finally:
+                curses.nocbreak()
+                stdscr.keypad(False)
+                curses.echo()
+                curses.endwin()
 
         else:
-            run_internal()
+            if self.args.title:
+                print(self.args.title)
+            print(output)
+            if legend:
+                print(legend)
 
 
 sar_chart = LazySar()
