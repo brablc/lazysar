@@ -249,9 +249,18 @@ class LazySar:
         sar_args += ["-s", self.args.start]
         sar_args += ["-e", self.args.end]
 
+        def parse_time(time_str):
+            for fmt in ("%H:%M:%S", "%H:%M"):
+                try:
+                    return datetime.strptime(time_str, fmt)
+                except ValueError:
+                    continue
+            raise ValueError(
+                f"Time data '{time_str}' does not match any supported format"
+            )
+
         total_seconds = (
-            datetime.strptime(self.args.end, "%H:%M:%S")
-            - datetime.strptime(self.args.start, "%H:%M:%S")
+            parse_time(self.args.end) - parse_time(self.args.start)
         ).total_seconds()
 
         interval = int(total_seconds / self.get_chart_width() / 3)
