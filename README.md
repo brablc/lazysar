@@ -52,7 +52,9 @@ lazysar -l | xargs -I{} lazysar --dev=sda --iface=eth1 --ago=1 --preset={} --hei
 
 ### Use panel
 
-Show multiple charts predefined in zellij layout format. Layout will be searched first in `$HOME/.config/zellij/layouts/` and if not found in project's `./layouts`.
+Show multiple charts predefined in zellij layout configuration file (.kdl). Layout will be searched first in `$HOME/.config/zellij/layouts/` and if not found in project's `./layouts`.
+
+When panelized `lazysar` will show legend on top, out of the screen to maximize chart area. You can scroll the pane to see the legend.
 
 ```sh
 lazysar panel [LAYOUT_NAME] [DEFAULTS...]

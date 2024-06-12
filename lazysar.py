@@ -67,6 +67,9 @@ class LazySar:
 
     def __init__(self) -> None:
         self.get_terminal_size()
+        self.panelized = os.getenv("ZELLIJ_SESSION_NAME", "").startswith(
+            "lazysar-panel-"
+        )
 
     def get_terminal_size(self):
         self.terminal_size = shutil.get_terminal_size()
@@ -395,7 +398,9 @@ class LazySar:
         def float_formatter(val, delta, chars=None, left=True):
             return f"{{:>{y_width}.{y_precision}f}}".format(val)
 
-        show_legend = len(headers) > 2 and self.terminal_size.lines >= 14
+        show_legend = self.panelized or (
+            len(headers) > 2 and self.terminal_size.lines >= 14
+        )
 
         fig.register_label_formatter(float, float_formatter)
 
@@ -407,7 +412,7 @@ class LazySar:
                 if self.args.height
                 else self.terminal_size.lines
                 - 4
-                - (len(headers) + 3 if show_legend else 0)
+                - (len(headers) + 3 if show_legend and not self.panelized else 0)
             ),
         )
 
@@ -445,6 +450,23 @@ class LazySar:
                 os.system("clear")
             if self.args.title:
                 print(self.args.title)
+
+            if self.panelized:
+                chart_output = []
+                legend_output = []
+                legend_found = False
+                for line in output.splitlines():
+                    if not len(line):
+                        continue
+                    if line.startswith("Legend:"):
+                        legend_found = True
+                    if legend_found:
+                        legend_output.append(line)
+                    else:
+                        chart_output.append(line)
+                output = (
+                    "\n".join(legend_output) + "\n\n" + "\n".join(chart_output).strip()
+                )
 
             print(output)
 
