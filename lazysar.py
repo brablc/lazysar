@@ -60,7 +60,8 @@ colors = [
 
 @dataclass
 class Args:
-    verbose: bool = False
+    verbose: Optional[str] = None
+    debug: Optional[bool] = False
     title: Optional[str] = None
     height: Optional[int] = None
     y_label: Optional[str] = None
@@ -99,8 +100,13 @@ class LazySar:
         parser = argparse.ArgumentParser(description="Plot SAR data")
         parser.add_argument(
             "--verbose",
+            "-v",
+            help="Verbose mode - used with debugging, pass method as argument",
+        )
+        parser.add_argument(
+            "--debug",
             action="store_true",
-            help="Verbose mode",
+            help="Debug mode - do not use curses",
         )
         parser.add_argument(
             "--title",
@@ -190,6 +196,7 @@ class LazySar:
         parsed_args, self.sar_args = parser.parse_known_args()
 
         self.args = Args(
+            debug=parsed_args.debug,
             verbose=parsed_args.verbose,
             title=parsed_args.title,
             height=parsed_args.height,
@@ -289,13 +296,17 @@ class LazySar:
             sar_args += ["-i", str(interval)]
         return sar_args
 
-    def exec_sar(self, time_sar_args):
+    def exec_sar(self, sar_extra_args):
         env_vars = os.environ.copy()
         env_vars["LC_ALL"] = "C"
-        sar_cmd = ["sar"] + self.sar_args + time_sar_args
+        sar_cmd = ["sar"] + self.sar_args + sar_extra_args
+
         if self.args.host:
             sar_cmd = ["ssh", "-n", "-T", self.args.host] + sar_cmd
+
         try:
+            if self.args.verbose:
+                print(f"Debug: {" ".join(sar_cmd)}")
             process = subprocess.Popen(sar_cmd, stdout=subprocess.PIPE, env=env_vars)
             stdout, stderr = process.communicate()
             if process.returncode != 0:
@@ -309,83 +320,6 @@ class LazySar:
             exit(1)
 
         return stdout.decode("utf-8").splitlines()
-
-    def filter_data(self, lines):
-        filter_value = None
-
-        # Prepare the data according to the awk script logic
-        filtered_lines = []
-        for i, line in enumerate(lines):
-            if i < 2:
-                continue
-            parts = line.split()
-            if i == 2:
-                parts[0] = "Time"
-                if (self.args.dev and parts[1] == "DEV") or (
-                    self.args.iface and parts[1] == "IFACE"
-                ):
-                    filter_value = parts[1]
-            if i > 3 and parts[0] == "00:00:00":
-                break
-            if parts[0] == "Average:" or len(parts) < 2:
-                continue
-            if (
-                i > 2
-                and filter_value
-                and (
-                    (
-                        filter_value == "DEV"
-                        and self.args.dev
-                        and self.args.dev != parts[1]
-                    )
-                    or (
-                        filter_value == "IFACE"
-                        and self.args.iface
-                        and self.args.iface != parts[1]
-                    )
-                )
-            ):
-                continue
-            filtered_lines.append("\t".join(parts))
-
-        return filtered_lines
-
-    def process_data(self, lines):
-        reader = csv.DictReader(lines, delimiter="\t")
-
-        headers = reader.fieldnames or []
-
-        if self.include_columns and not self.exclude_columns:
-            include_set = set(self.include_columns)
-            self.exclude_columns = [
-                col for col in headers[1:] if col not in include_set
-            ]
-
-        ignore_indices = [
-            headers.index(col) for col in self.exclude_columns if col in headers
-        ]
-        headers = [h for i, h in enumerate(headers) if i not in ignore_indices]
-
-        data_columns = {header: [] for header in headers[1:]}
-
-        non_numeric_columns = set()
-
-        times = []
-        for row in reader:
-            times.append(parse_time(row["Time"]))
-            for header in headers[1:]:
-                number = extract_first_number(row[header])
-                if number is not None:
-                    data_columns[header].append(number)
-                else:
-                    non_numeric_columns.add(header)
-
-        # Remove columns with non-numeric values
-        for header in non_numeric_columns:
-            if header in data_columns:
-                del data_columns[header]
-
-        return [headers, times, data_columns]
 
     def get_chart_width(self):
         return max(
@@ -443,7 +377,7 @@ class LazySar:
                 else self.terminal_size.lines
                 - 4
                 - (1 if self.args.title else 0)
-                - (len(headers) + 3 if show_legend and not self.panelized else 1)
+                - (len(headers) + 1 if show_legend and not self.panelized else 1)
             ),
         )
 
@@ -455,99 +389,204 @@ class LazySar:
 
         return fig.show(legend=show_legend)
 
+    def filter_data(self, lines):
+        filter_value = None
+
+        # Prepare the data according to the awk script logic
+        filtered_lines = []
+        for i, line in enumerate(lines):
+            if i < 2:
+                continue
+            parts = line.split()
+            if i == 2:
+                parts[0] = "Time"
+                if (self.args.dev and parts[1] == "DEV") or (
+                    self.args.iface and parts[1] == "IFACE"
+                ):
+                    filter_value = parts[1]
+            if len(parts) < 2 or parts[0] == "Average:":
+                continue
+            if i > 3 and parts[0] == "00:00:00":
+                break
+            if (
+                i > 2
+                and filter_value
+                and (
+                    (
+                        filter_value == "DEV"
+                        and self.args.dev
+                        and self.args.dev != parts[1]
+                    )
+                    or (
+                        filter_value == "IFACE"
+                        and self.args.iface
+                        and self.args.iface != parts[1]
+                    )
+                )
+            ):
+                continue
+            filtered_lines.append("\t".join(parts))
+
+        if self.args.debug:
+            print("Filtered:")
+            print("\n".join(filtered_lines))
+        return filtered_lines
+
+    def process_data(self):
+        reader = csv.DictReader(self.sar_lines, delimiter="\t")
+
+        headers = reader.fieldnames or []
+
+        if self.include_columns and not self.exclude_columns:
+            include_set = set(self.include_columns)
+            self.exclude_columns = [
+                col for col in headers[1:] if col not in include_set
+            ]
+
+        ignore_indices = [
+            headers.index(col) for col in self.exclude_columns if col in headers
+        ]
+        headers = [h for i, h in enumerate(headers) if i not in ignore_indices]
+
+        data_columns = {header: [] for header in headers[1:]}
+
+        non_numeric_columns = set()
+
+        times = []
+        for row in reader:
+            times.append(parse_time(row["Time"]))
+            for header in headers[1:]:
+                number = extract_first_number(row[header])
+                if number is not None:
+                    data_columns[header].append(number)
+                else:
+                    non_numeric_columns.add(header)
+
+        # Remove columns with non-numeric values
+        for header in non_numeric_columns:
+            if header in data_columns:
+                del data_columns[header]
+
+        return [headers, times, data_columns]
+
+    def convert_data(self):
+        [headers, times, data_columns] = self.process_data()
+
+        if not times:
+            print("Error: no data matches.")
+            exit(1)
+
+        if not data_columns:
+            print("Error: no numerical data left.")
+            exit(1)
+
+        self.get_terminal_size()
+        raw_output = self.get_chart_output(headers, times, data_columns)
+
+        chart_output = []
+        legend_output = []
+        legend_found = False
+        for line in raw_output.splitlines():
+            if not len(line):
+                continue
+            if line.startswith("Legend:"):
+                legend_found = True
+            if legend_found:
+                legend_output.append(f" {line} ")
+            else:
+                chart_output.append(line)
+
+        self.output = "\n".join(chart_output)
+        self.legend = "\n".join(legend_output[2:])
+
+    def text_output(self):
+        if self.args.title:
+            print(self.args.title)
+        print(self.output)
+        if self.legend:
+            print(self.legend)
+
+    def refresh_data(self):
+        oldest_time = self.sar_lines[1].split("\t", 2)[0]
+        self.sar_lines = [
+            line for line in self.sar_lines if not line.startswith(oldest_time)
+        ]
+        sar_fresh_lines = self.exec_sar([f"{self.args.refresh}", "1"])
+        fresh_filtered_lines = self.filter_data(sar_fresh_lines)
+        self.sar_lines += fresh_filtered_lines[1:]
+
+    def curses_init(self):
+        stdscr = curses.initscr()
+        curses.noecho()
+        curses.cbreak()
+        curses.start_color()
+        curses.use_default_colors()
+        for ansi_code, curses_color in ANSI_TO_CURSES_COLOR_MAP.items():
+            curses.init_pair(ansi_code, curses_color, -1)
+        stdscr.keypad(True)
+        return stdscr
+
+    def add_curses(self, stdscr, row, col, data):
+        for i, line in enumerate(data.splitlines()):
+            x_pos = 0
+            current_color = 0
+            j = 0
+
+            while j < len(line):
+                char = line[j]
+                if char == "\033":
+                    ansi_code = ""
+                    j += 2
+                    while line[j] != "m":
+                        ansi_code += line[j]
+                        j += 1
+                    current_color = int(ansi_code)
+                    j += 1
+                    continue
+
+                stdscr.addstr(
+                    row + i, col + x_pos, char, curses.color_pair(current_color)
+                )
+                x_pos += 1
+                j += 1
+
     def run(self):
         self.parser_args()
+        sar_raw_lines = self.exec_sar(self.get_time_sar_args())
+        self.sar_lines = self.filter_data(sar_raw_lines)
+        self.output = None
+        self.legend = None
 
-        def run_internal():
-            self.get_terminal_size()
-            time_sar_args = self.get_time_sar_args()
+        if len(self.sar_lines) == 1:
+            print("Error: no data found - missing --dev or --iface?")
+            exit(1)
 
-            lines = self.exec_sar(time_sar_args)
+        self.convert_data()
 
-            filtered_lines = self.filter_data(lines)
-            [headers, times, data_columns] = self.process_data(filtered_lines)
-
-            if not times:
-                print("Error: no data matches.")
-                exit(1)
-
-            if not data_columns:
-                print("Error: no numerical data left.")
-                exit(1)
-
-            output = self.get_chart_output(headers, times, data_columns)
-
-            chart_output = []
-            legend_output = []
-            legend_found = False
-            for line in output.splitlines():
-                if not len(line):
-                    continue
-                if line.startswith("Legend:"):
-                    legend_found = True
-                if legend_found:
-                    legend_output.append(line)
-                else:
-                    chart_output.append(line)
-
-            return ["\n".join(chart_output), "\n".join(legend_output)]
-
-        [output, legend] = run_internal()
-
-        if self.args.refresh:
-            stdscr = curses.initscr()
-            curses.noecho()
-            curses.cbreak()
-            curses.start_color()
-            curses.use_default_colors()
-            for ansi_code, curses_color in ANSI_TO_CURSES_COLOR_MAP.items():
-                curses.init_pair(ansi_code, curses_color, -1)
-
-            stdscr.keypad(True)
-
-            def addcurses(row, col, data):
-                for i, line in enumerate(data.splitlines()):
-                    x_pos = 0
-                    current_color = 0
-                    j = 0
-
-                    while j < len(line):
-                        char = line[j]
-                        if char == "\033":
-                            ansi_code = ""
-                            j += 2
-                            while line[j] != "m":
-                                ansi_code += line[j]
-                                j += 1
-                            current_color = int(ansi_code)
-                            j += 1
-                            continue
-
-                        stdscr.addstr(
-                            row + i, col + x_pos, char, curses.color_pair(current_color)
-                        )
-                        x_pos += 1
-                        j += 1
-
+        if self.panelized:
+            stdscr = self.curses_init()
             try:
                 while True:
-                    addcurses(0, 0, output)
-                    addcurses(2, 13, legend)
+                    self.add_curses(stdscr, 0, 0, self.output)
+                    self.add_curses(stdscr, 2, 14, self.legend)
                     stdscr.refresh()
-                    time.sleep(self.args.refresh)
-                    [output, legend] = run_internal()
+                    if not self.args.refresh:
+                        break
+                    self.refresh_data()
+                    self.convert_data()
+
             finally:
                 curses.nocbreak()
                 stdscr.keypad(False)
                 curses.echo()
                 curses.endwin()
-
         else:
-            if self.args.title:
-                print(self.args.title)
-            print(output)
-            if legend:
-                print(legend)
+            while True:
+                self.text_output()
+                if not self.args.refresh:
+                    break
+                self.refresh_data()
+                self.convert_data()
 
 
 sar_chart = LazySar()
