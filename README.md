@@ -79,7 +79,7 @@ Use the bottom panel to send different set of arguments to all panes (in all ses
 
 Uses [layouts/basic.kdl](./layouts/basic.kdl) - should work out of the box.
 
-![image](https://github.com/brablc/lazysar/assets/841734/57a5f5f1-811c-4cd8-8e9a-fa2c174b4279)
+![image](https://github.com/brablc/lazysar/assets/841734/fa61124b-371d-4da6-863c-127cd22fff4b)
 
 #### Multiple hosts zoomed to incident time:
 
