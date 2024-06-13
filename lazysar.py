@@ -579,7 +579,7 @@ class LazySar:
                 curses.nocbreak()
                 stdscr.keypad(False)
                 curses.echo()
-                curses.endwin()
+                # curses.endwin()
         else:
             while True:
                 self.text_output()
