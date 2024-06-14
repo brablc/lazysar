@@ -77,12 +77,12 @@ function stop_clients() {
 if [ "$1" = "cmd" ]; then
     shift
     sleep 2
-    LAST_COMMAND=$(tail -1 $RUN_CMDS >/dev/null)
+    LAST_COMMAND=$(tail -1 $RUN_CMDS)
     trap stop_clients EXIT
     if command -v rlwrap >/dev/null; then
         (sleep 0.1 && zellij action write-chars -- "$LAST_COMMAND" ) &
         while true; do
-            echo "Send args to panels (use history C-r, C-c to exit):"
+            echo "Send args to panels (ENTER for defaults, history C-r, C-c to exit):"
             rlwrap -C lazysar $SCRIPT_PATH rlwrap || exit
         done
     else
