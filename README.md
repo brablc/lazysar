@@ -87,7 +87,7 @@ Uses [layouts/hosts.kdl](./layouts/hosts.kdl) - needs to ba adapted to fix host 
 
 The basic example uses `cpu` preset, while mutliple hosts uses `cpu100` so the charts are comparable.
 
-![image](https://github.com/brablc/lazysar/assets/841734/d182e8f4-a0c7-4f1f-9a64-0e5e027f5e9f)
+![lazysar-hosts](https://github.com/brablc/lazysar/assets/841734/e349f0fc-36a2-459c-a091-4b8658b5859b)
 
 ## Credits
 
