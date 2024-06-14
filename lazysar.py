@@ -565,8 +565,8 @@ class LazySar:
 
         if self.panelized:
             stdscr = self.curses_init()
-            try:
-                while True:
+            while True:
+                try:
                     self.add_curses(stdscr, 0, 0, self.output)
                     self.add_curses(stdscr, 2, 14, self.legend)
                     stdscr.refresh()
@@ -574,12 +574,12 @@ class LazySar:
                         break
                     self.refresh_data()
                     self.convert_data()
-
-            finally:
-                curses.nocbreak()
-                stdscr.keypad(False)
-                curses.echo()
-                # curses.endwin()
+                except:
+                    curses.endwin()
+                    stdscr = self.curses_init()
+            curses.nocbreak()
+            stdscr.keypad(False)
+            curses.echo()
         else:
             while True:
                 self.text_output()
