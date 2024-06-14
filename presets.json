@@ -28,7 +28,7 @@
     "sar": "-d"
   },
   "memory": {
-    "args": "--y-label='MB' --title='Memory Usage' --include=kbmemfree,kbmemused,kbbuffers,kbcached",
+    "args": "--y-label='kB' --title='Memory Usage' --include=kbmemfree,kbmemused,kbbuffers,kbcached",
     "sar": "-r"
   },
   "network_bytes": {
