@@ -74,6 +74,7 @@ class Args:
     start: str = "00:00:00"
     end: str = "23:59:59"
     refresh: Optional[int] = None
+    watch: Optional[str] = None
     presets_file: Optional[str] = None
     preset: Optional[str] = None
     list_presets: bool = False
@@ -168,6 +169,10 @@ class LazySar:
             help="Refresh every given number of seconds",
         )
         parser.add_argument(
+            "--watch",
+            help="Watch file - when it changes inode or time, exit refresh mode",
+        )
+        parser.add_argument(
             "--presets-file",
             help="Presets file name",
         )
@@ -210,6 +215,7 @@ class LazySar:
             start=parsed_args.start,
             end=parsed_args.end,
             refresh=parsed_args.refresh,
+            watch=parsed_args.watch,
             presets_file=parsed_args.presets_file,
             preset=parsed_args.preset,
             list_presets=parsed_args.list_presets,
@@ -550,6 +556,15 @@ class LazySar:
                 x_pos += 1
                 j += 1
 
+    def get_watch_info(self):
+        if self.args.watch:
+            try:
+                file_stat = os.stat(self.args.watch)
+                return file_stat.st_ino, file_stat.st_mtime
+            except Exception:  # Catch other potential errors
+                pass
+        return None, None
+
     def run(self):
         self.parser_args()
         sar_raw_lines = self.exec_sar(self.get_time_sar_args())
@@ -563,6 +578,8 @@ class LazySar:
 
         self.convert_data()
 
+        [watch_inode, watch_time] = self.get_watch_info()
+
         if self.panelized:
             stdscr = self.curses_init()
             while True:
@@ -572,9 +589,14 @@ class LazySar:
                     stdscr.refresh()
                     if not self.args.refresh:
                         break
+
+                    [new_watch_inode, new_watch_time] = self.get_watch_info()
+                    if new_watch_time != watch_time or new_watch_inode != watch_inode:
+                        break
+
                     self.refresh_data()
                     self.convert_data()
-                except:
+                except Exception:
                     curses.endwin()
                     stdscr = self.curses_init()
             curses.nocbreak()

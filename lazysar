@@ -64,7 +64,7 @@ if [ "$1" = "client" ]; then
         if [ "$COMMANDS" == "STOP" ]; then
             break
         fi
-        eval lazysar "$@" "--title='' $COMMANDS"
+        eval lazysar "$@" "--watch='$RUN_CMDS' --title='' $COMMANDS"
     done < <(tail -n 1 -f $RUN_CMDS 2>/dev/null)
     exit
 fi
