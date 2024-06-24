@@ -312,7 +312,7 @@ class LazySar:
 
         try:
             if self.args.verbose:
-                print(f"Debug: {" ".join(sar_cmd)}")
+                print(f"Debug: {' '.join(sar_cmd)}")
             process = subprocess.Popen(sar_cmd, stdout=subprocess.PIPE, env=env_vars)
             stdout, stderr = process.communicate()
             if process.returncode != 0:
