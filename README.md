@@ -1,6 +1,6 @@
 # lazysar
 
-Visualize *sar/sysstats* data in multipane terminal with "zooming" possibility and multiple host support. An alternative to kSar, sarplot.
+Visualize *sar/sysstat* data in multipane terminal with "zooming" possibility and multiple host support. An alternative to kSar, sarplot.
 
 ## Installation
 
