@@ -6,7 +6,7 @@ Visualize *sar/sysstat* data in multipane terminal with "zooming" possibility an
 
 Prerequisites:
 
-- python3
+- python 3.8+
 - `apt-get install sysstat` - obvious, you probably have this already running
 
 For panel support:
