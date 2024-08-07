@@ -64,6 +64,7 @@ class Args:
     debug: Optional[bool] = False
     title: Optional[str] = None
     height: Optional[int] = None
+    width: Optional[int] = None
     y_label: Optional[str] = None
     y_max: Optional[int] = None
     dev: Optional[str] = None
@@ -78,6 +79,7 @@ class Args:
     presets_file: Optional[str] = None
     preset: Optional[str] = None
     list_presets: bool = False
+    no_legend: bool = False
     host: Optional[str] = None
     sar_args: List[str] = field(default_factory=list)
 
@@ -102,6 +104,7 @@ class LazySar:
         parser.add_argument(
             "--verbose",
             "-v",
+            action="store_true",
             help="Verbose mode - used with debugging, pass method as argument",
         )
         parser.add_argument(
@@ -118,6 +121,11 @@ class LazySar:
             "--height",
             type=int,
             help="Height",
+        )
+        parser.add_argument(
+            "--width",
+            type=int,
+            help="Width",
         )
         parser.add_argument(
             "--y-label",
@@ -177,6 +185,11 @@ class LazySar:
             help="Presets file name",
         )
         parser.add_argument(
+            "--no-legend",
+            action="store_true",
+            help="Do not print legend",
+        )
+        parser.add_argument(
             "--preset",
             "-p",
             help="Presets name",
@@ -205,6 +218,7 @@ class LazySar:
             verbose=parsed_args.verbose,
             title=parsed_args.title,
             height=parsed_args.height,
+            width=parsed_args.width,
             y_label=parsed_args.y_label,
             y_max=parsed_args.y_max,
             dev=parsed_args.dev,
@@ -218,6 +232,7 @@ class LazySar:
             watch=parsed_args.watch,
             presets_file=parsed_args.presets_file,
             preset=parsed_args.preset,
+            no_legend=parsed_args.no_legend,
             list_presets=parsed_args.list_presets,
             host=parsed_args.host,
             sar_args=parsed_args.sar_args,
@@ -328,10 +343,8 @@ class LazySar:
         return stdout.decode("utf-8").splitlines()
 
     def get_chart_width(self):
-        return max(
-            5,
-            self.terminal_size.columns - self.Y_LEGEND_WIDTH - 11,
-        )
+        columns = self.args.width or self.terminal_size.columns
+        return max(5, columns - self.Y_LEGEND_WIDTH - 11)
 
     def get_chart_output(self, headers, times, data_columns):
         fig = plotille.Figure()
@@ -509,7 +522,7 @@ class LazySar:
         if self.args.title:
             print(self.args.title)
         print(self.output)
-        if self.legend:
+        if self.legend and not self.args.no_legend:
             print(self.legend)
 
     def refresh_data(self):

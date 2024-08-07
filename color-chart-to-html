@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# REQUIREMENTS:
+#   apt-get install aha
+#
+# Add to your crontab file:
+#   LC_COLLATE="en_US.UTF-8"
+#   CONTENT_TYPE="text/html; charset=utf-8"
+
+function append_css() {
+    CSS='
+pre {
+    font-size: 8pt;
+    white-space: pre;
+    line-height: 1;
+}
+span {
+    display: inline-block;
+    width: 1ch;
+}
+'
+    awk -vcss="$CSS" '/<\/style>/{print css} 1'
+}
+
+aha -s | append_css
