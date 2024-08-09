@@ -89,6 +89,29 @@ The basic example uses `cpu` preset, while mutliple hosts uses `cpu100` so the c
 
 ![lazysar-hosts](https://github.com/brablc/lazysar/assets/841734/e349f0fc-36a2-459c-a091-4b8658b5859b)
 
+# Send html reports
+
+Prepare a script with selected reports (useful even for quick check from terminal):
+
+```lazysar-report
+#!/usr/bin/env bash
+lazysar --ago=1 --preset=cpu100 --height=10 --width=80 --title="CPU mng" --no-legend
+lazysar --ago=1 --preset=cpu100 --height=10 --width=80 --title="CPU node1" --host="node1"
+lazysar --ago=1 --preset=cpu100 --height=10 --width=80 --title="CPU node2" --host="node2"
+```
+
+Configure cron - requires `apt-get install aha`:
+
+```lazysar-cron
+MAILTO="admin@example.com"
+CONTENT_TYPE="text/html; charset=utf-8"
+00 01  *  *  * root lazysar-report |& color-chart-to-html
+```
+![image](https://github.com/user-attachments/assets/b9163a8f-2b14-4315-8f42-6ccd0ec03b02)
+
+> [!IMPORTANT]
+> - Ensure you have a password-less SSH access from your reporting node to other nodes.
+
 ## Credits
 
 Uses [Plotille](https://github.com/tammoippen/plotille) for visualization.
