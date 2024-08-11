@@ -9,6 +9,7 @@
 
 function append_css() {
     CSS='
+<style>
 pre {
     font-size: 8pt;
     white-space: pre;
@@ -18,8 +19,9 @@ span {
     display: inline-block;
     width: 1ch;
 }
+</style>
 '
-    awk -vcss="$CSS" '/<\/style>/{print css} 1'
+    awk -vcss="$CSS" '/<head/{print css} 1'
 }
 
-aha -s | append_css
+aha -s -b -x | append_css
