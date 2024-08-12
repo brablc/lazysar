@@ -21,7 +21,7 @@ span {
 }
 </style>
 '
-    awk -vcss="$CSS" '/<head/{print css} 1'
+    awk -vcss="$CSS" '/<\/head/{print css} {gsub(/\xe2\xa0\x80/, " ")}1'
 }
 
 aha -s -b -x | append_css
