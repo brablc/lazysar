@@ -107,7 +107,7 @@ MAILTO="admin@example.com"
 CONTENT_TYPE="text/html; charset=utf-8"
 00 01  *  *  * root lazysar-report |& color-chart-to-html
 ```
-![image](https://github.com/user-attachments/assets/b9163a8f-2b14-4315-8f42-6ccd0ec03b02)
+<img width="569" alt="image" src="https://github.com/user-attachments/assets/c764ef6e-b1c1-4071-9789-e5c8a6e99b9f">
 
 > [!IMPORTANT]
 > - Ensure you have a password-less SSH access from your reporting node to other nodes.
