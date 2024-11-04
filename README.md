@@ -1,6 +1,6 @@
 # lazysar
 
-Visualize *sar/sysstat* data in multipane terminal with "zooming" possibility and multiple host support. An alternative to kSar, sarplot.
+Visualize _sar/sysstat_ data in multipane terminal with "zooming" possibility and multiple host support. An alternative to kSar, sarplot.
 
 ## Installation
 
@@ -10,10 +10,13 @@ Prerequisites:
 - `apt-get install sysstat` - obvious, you probably have this already running
 
 For panel support:
-- https://zellij.dev/
+
+- <https://zellij.dev/>
+
 ```sh
 curl -L https://github.com/zellij-org/zellij/releases/latest/download/zellij-x86_64-unknown-linux-musl.tar.gz | tar xvz --no-same-owner && mv -v zellij /usr/local/bin
 ```
+
 - `apt-get install rlwrap` - (optional) to provide command line history
 
 Installation:
@@ -28,6 +31,10 @@ git clone git@github.com:brablc/lazysar.git /usr/local/lib/lazysar
 `lazysar` calls `sar` command to get data. It would pass all parameters unknown to it to `sar`. Additionally it would simplify selecting days by transforming `--ago=N` to something like `-f /var/log/sysstat/sa$(date -d 'N days ago' +'%d')`. You can specify minutes ago too `--ago=15m`, this would select current date and pass `-s` with time 15 minutes ago.
 
 Some charts have multiple sets of data, namely disk and network. Use `--dev=sda` or `--iface=eth1` to select the right set. For cpu use sar's arguments `-P 0` (to select CPU 0), try with `lazysar panel cpu4`.
+
+> [!TIP]
+>
+> - Save default parameters to `$HOME/.config/lazysar/defaults`, they will be added to every command.
 
 ### Ad-hoc use
 
@@ -75,13 +82,13 @@ Use the bottom panel to send different set of arguments to all panes (in all ses
 
 ```
 
-#### Basic panel example:
+#### Basic panel example
 
 Uses [layouts/basic.kdl](./layouts/basic.kdl) - should work out of the box.
 
 ![image](https://github.com/brablc/lazysar/assets/841734/fa61124b-371d-4da6-863c-127cd22fff4b)
 
-#### Multiple hosts zoomed to incident time:
+#### Multiple hosts zoomed to incident time
 
 Uses [layouts/hosts.kdl](./layouts/hosts.kdl) - needs to ba adapted to fix host names (assumes `node1` and `node2`).
 
@@ -107,9 +114,11 @@ MAILTO="admin@example.com"
 CONTENT_TYPE="text/html; charset=utf-8"
 00 01  *  *  * root lazysar-report |& color-chart-to-html
 ```
+
 <img width="569" alt="image" src="https://github.com/user-attachments/assets/c764ef6e-b1c1-4071-9789-e5c8a6e99b9f">
 
 > [!IMPORTANT]
+>
 > - Ensure you have a password-less SSH access from your reporting node to other nodes.
 
 ## Credits
