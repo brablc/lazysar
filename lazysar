@@ -38,16 +38,23 @@ if [ "$1" = "panel" ]; then
     cat "$DEFAULTS_FILE" >"$RUN_CMDS"
   fi
 
-  LAYOUT_PATH="$HOME/.config/zellij/layouts/${LAYOUT}.kdl"
+  LAYOUT_DIRS=("$HOME/.config/zellij/layouts" "$SCRIPT_DIR/layouts")
+  for LAYOUT_DIR in "${LAYOUT_DIRS[@]}"; do
+    LAYOUT_PATH="${LAYOUT_DIR}/${LAYOUT}.kdl"
+    if [[ -f $LAYOUT_PATH ]]; then
+      break
+    fi
+  done
   if [[ ! -f $LAYOUT_PATH ]]; then
-    LAYOUT_PATH="$SCRIPT_DIR/layouts/${LAYOUT}.kdl"
-  fi
-  if [[ ! -f $LAYOUT_PATH ]]; then
-    echo "Cannot find zellij layout $LAYOUT_PATH"
+    echo "Cannot find zellij layout in any of: ${LAYOUT_DIRS[*]}"
     exit 1
   fi
 
-  zellij -l "$LAYOUT_PATH"
+  if [[ -n $ZELLIJ_SESSION_NAME ]]; then
+    zellij action new-tab --layout "$LAYOUT_PATH"
+  else
+    zellij --layout "$LAYOUT_PATH"
+  fi
   exit
 fi
 
@@ -107,4 +114,4 @@ if [ ! -d "${SCRIPT_DIR}/.venv/bin" ]; then
   echo "Python virtual environment not setup properly, did you run install.sh?"
   exit 1
 fi
-FORCE_COLOR=1 "${SCRIPT_DIR}/.venv/bin/python" "${SCRIPT_DIR}/lazysar.py" --presets-file="${PRESETS_FILE}" "$@"
+LAZYSAR_PANELIZED=1 FORCE_COLOR=1 "${SCRIPT_DIR}/.venv/bin/python" "${SCRIPT_DIR}/lazysar.py" --presets-file="${PRESETS_FILE}" "$@"

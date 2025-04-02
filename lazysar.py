@@ -7,7 +7,6 @@ import os
 import re
 import shutil
 import subprocess
-import time
 
 from dataclasses import dataclass, field
 from typing import List, Optional
@@ -92,9 +91,7 @@ class LazySar:
 
     def __init__(self) -> None:
         self.get_terminal_size()
-        self.panelized = os.getenv("ZELLIJ_SESSION_NAME", "").startswith(
-            "lazysar-panel-"
-        )
+        self.panelized = os.getenv("LAZYSAR_PANELIZED", "0") == "1"
 
     def get_terminal_size(self):
         self.terminal_size = shutil.get_terminal_size()
@@ -284,9 +281,7 @@ class LazySar:
             ago_is_time = re.match(r"^(\d+)m$", self.args.ago, re.IGNORECASE)
             if ago_is_time:
                 ago_days = 0
-                self.args.start = (
-                    datetime.now() - timedelta(minutes=int(ago_is_time.group(1)))
-                ).strftime("%H:%M:%S")
+                self.args.start = (datetime.now() - timedelta(minutes=int(ago_is_time.group(1)))).strftime("%H:%M:%S")
                 self.args.end = datetime.now().strftime("%H:%M:%S")
             else:
                 ago_days = int(self.args.ago)
@@ -304,13 +299,9 @@ class LazySar:
                     return datetime.strptime(time_str, fmt)
                 except ValueError:
                     continue
-            raise ValueError(
-                f"Time data '{time_str}' does not match any supported format"
-            )
+            raise ValueError(f"Time data '{time_str}' does not match any supported format")
 
-        total_seconds = (
-            parse_time(self.args.end) - parse_time(self.args.start)
-        ).total_seconds()
+        total_seconds = (parse_time(self.args.end) - parse_time(self.args.start)).total_seconds()
 
         interval = int(total_seconds / self.get_chart_width() / 3)
         if interval:
@@ -331,9 +322,7 @@ class LazySar:
             process = subprocess.Popen(sar_cmd, stdout=subprocess.PIPE, env=env_vars)
             stdout, stderr = process.communicate()
             if process.returncode != 0:
-                print(
-                    f"Error: 'sar' command failed with exit code {process.returncode}. Command was: {sar_cmd}"
-                )
+                print(f"Error: 'sar' command failed with exit code {process.returncode}. Command was: {sar_cmd}")
                 print(stderr)  # Print the error message from stderr
                 exit(1)
         except FileNotFoundError:
@@ -344,7 +333,7 @@ class LazySar:
 
     def get_chart_width(self):
         columns = self.args.width or self.terminal_size.columns
-        return max(5, columns - self.Y_LEGEND_WIDTH - 11)
+        return max(5, columns - self.Y_LEGEND_WIDTH - 12)
 
     def get_chart_output(self, headers, times, data_columns):
         fig = plotille.Figure()
@@ -365,11 +354,7 @@ class LazySar:
             end_time = max(times)
 
         fig.set_x_limits(min_=start_time.timestamp(), max_=end_time.timestamp())
-        y_max = (
-            self.args.y_max
-            if self.args.y_max
-            else max(max(values) for values in data_columns.values())
-        )
+        y_max = self.args.y_max if self.args.y_max else max(max(values) for values in data_columns.values())
         fig.set_y_limits(min_=0, max_=y_max)
 
         y_width = self.Y_LEGEND_WIDTH
@@ -381,9 +366,7 @@ class LazySar:
         def float_formatter(val, delta, chars=None, left=True):
             return f"{{:>{y_width}.{y_precision}f}}".format(val)
 
-        show_legend = self.panelized or (
-            len(headers) > 2 and self.terminal_size.lines >= 14
-        )
+        show_legend = self.panelized or (len(headers) > 2 and self.terminal_size.lines >= 14)
 
         fig.register_label_formatter(float, float_formatter)
 
@@ -419,9 +402,7 @@ class LazySar:
             parts = line.split()
             if i == 2:
                 parts[0] = "Time"
-                if (self.args.dev and parts[1] == "DEV") or (
-                    self.args.iface and parts[1] == "IFACE"
-                ):
+                if (self.args.dev and parts[1] == "DEV") or (self.args.iface and parts[1] == "IFACE"):
                     filter_value = parts[1]
             if len(parts) < 2 or parts[0] == "Average:":
                 continue
@@ -431,16 +412,8 @@ class LazySar:
                 i > 2
                 and filter_value
                 and (
-                    (
-                        filter_value == "DEV"
-                        and self.args.dev
-                        and self.args.dev != parts[1]
-                    )
-                    or (
-                        filter_value == "IFACE"
-                        and self.args.iface
-                        and self.args.iface != parts[1]
-                    )
+                    (filter_value == "DEV" and self.args.dev and self.args.dev != parts[1])
+                    or (filter_value == "IFACE" and self.args.iface and self.args.iface != parts[1])
                 )
             ):
                 continue
@@ -458,13 +431,9 @@ class LazySar:
 
         if self.include_columns and not self.exclude_columns:
             include_set = set(self.include_columns)
-            self.exclude_columns = [
-                col for col in headers[1:] if col not in include_set
-            ]
+            self.exclude_columns = [col for col in headers[1:] if col not in include_set]
 
-        ignore_indices = [
-            headers.index(col) for col in self.exclude_columns if col in headers
-        ]
+        ignore_indices = [headers.index(col) for col in self.exclude_columns if col in headers]
         headers = [h for i, h in enumerate(headers) if i not in ignore_indices]
 
         data_columns = {header: [] for header in headers[1:]}
@@ -527,9 +496,7 @@ class LazySar:
 
     def refresh_data(self):
         oldest_time = self.sar_lines[1].split("\t", 2)[0]
-        self.sar_lines = [
-            line for line in self.sar_lines if not line.startswith(oldest_time)
-        ]
+        self.sar_lines = [line for line in self.sar_lines if not line.startswith(oldest_time)]
         sar_fresh_lines = self.exec_sar([f"{self.args.refresh}", "1"])
         fresh_filtered_lines = self.filter_data(sar_fresh_lines)
         self.sar_lines += fresh_filtered_lines[1:]
@@ -563,9 +530,7 @@ class LazySar:
                     j += 1
                     continue
 
-                stdscr.addstr(
-                    row + i, col + x_pos, char, curses.color_pair(current_color)
-                )
+                stdscr.addstr(row + i, col + x_pos, char, curses.color_pair(current_color))
                 x_pos += 1
                 j += 1
 
