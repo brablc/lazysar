@@ -73,13 +73,12 @@ lazysar panel --host=node1
 
 Use the bottom panel to send different set of arguments to all panes (in all sessions!) at once. Examples:
 
-```
+```bash
 # today
 --dev=sda --iface=eth1
 
 # yesterday - "zommed" to time 06:00 to 07:00
 --dev=sda --iface=eth1 --ago=1 -s 06:00 -e 07:00
-
 ```
 
 #### Basic panel example
@@ -96,7 +95,7 @@ The basic example uses `cpu` preset, while mutliple hosts uses `cpu100` so the c
 
 ![lazysar-hosts](https://github.com/brablc/lazysar/assets/841734/e349f0fc-36a2-459c-a091-4b8658b5859b)
 
-# Send html reports
+## Send html reports
 
 Prepare a script with selected reports (useful even for quick check from terminal):
 
