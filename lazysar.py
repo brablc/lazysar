@@ -79,6 +79,7 @@ class Args:
     preset: Optional[str] = None
     list_presets: bool = False
     no_legend: bool = False
+    panelized: bool = False
     host: Optional[str] = None
     sar_args: List[str] = field(default_factory=list)
 
@@ -91,7 +92,6 @@ class LazySar:
 
     def __init__(self) -> None:
         self.get_terminal_size()
-        self.panelized = os.getenv("LAZYSAR_PANELIZED", "0") == "1"
 
     def get_terminal_size(self):
         self.terminal_size = shutil.get_terminal_size()
@@ -187,6 +187,11 @@ class LazySar:
             help="Do not print legend",
         )
         parser.add_argument(
+            "--panelized",
+            action="store_true",
+            help="Expect to run in panelized setup (like zellij)",
+        )
+        parser.add_argument(
             "--preset",
             "-p",
             help="Presets name",
@@ -230,6 +235,7 @@ class LazySar:
             presets_file=parsed_args.presets_file,
             preset=parsed_args.preset,
             no_legend=parsed_args.no_legend,
+            panelized=parsed_args.panelized,
             list_presets=parsed_args.list_presets,
             host=parsed_args.host,
             sar_args=parsed_args.sar_args,
@@ -366,7 +372,7 @@ class LazySar:
         def float_formatter(val, delta, chars=None, left=True):
             return f"{{:>{y_width}.{y_precision}f}}".format(val)
 
-        show_legend = self.panelized or (len(headers) > 2 and self.terminal_size.lines >= 14)
+        show_legend = self.args.panelized or (len(headers) > 2 and self.terminal_size.lines >= 14)
 
         fig.register_label_formatter(float, float_formatter)
 
@@ -379,7 +385,7 @@ class LazySar:
                 else self.terminal_size.lines
                 - 4
                 - (1 if self.args.title else 0)
-                - (len(headers) + 1 if show_legend and not self.panelized else 1)
+                - (len(headers) + 1 if show_legend and not self.args.panelized else 1)
             ),
         )
 
@@ -558,7 +564,7 @@ class LazySar:
 
         [watch_inode, watch_time] = self.get_watch_info()
 
-        if self.panelized:
+        if self.args.panelized:
             stdscr = self.curses_init()
             while True:
                 try:
