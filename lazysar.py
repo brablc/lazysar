@@ -189,7 +189,7 @@ class LazySar:
         parser.add_argument(
             "--panelized",
             action="store_true",
-            help="Expect to run in panelized setup (like zellij)",
+            help="Expect to run in panelized setup (like tmux)",
         )
         parser.add_argument(
             "--preset",

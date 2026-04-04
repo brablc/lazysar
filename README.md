@@ -6,22 +6,17 @@ Visualize _sar/sysstat_ data in multipane terminal with "zooming" possibility an
 
 Prerequisites:
 
-- python 3.8+
+- python 3.12+
 - `apt-get install sysstat` - obvious, you probably have this already running
 
 For panel support:
 
-- <https://zellij.dev/>
-
-```sh
-curl -L https://github.com/zellij-org/zellij/releases/latest/download/zellij-x86_64-unknown-linux-musl.tar.gz | tar xvz --no-same-owner && mv -v zellij /usr/local/bin
-```
-
+- `apt-get install tmux`
 - `apt-get install rlwrap` - (optional) to provide command line history
 
 Installation:
 
-```sh
+```bash
 git clone git@github.com:brablc/lazysar.git /usr/local/lib/lazysar
 /usr/local/lib/lazysar/install.sh
 ```
@@ -59,12 +54,16 @@ lazysar -l | xargs -I{} lazysar --dev=sda --iface=eth1 --ago=1 --preset={} --hei
 
 ### Use panel
 
-Show multiple charts predefined in zellij layout configuration file (.kdl). Layout will be searched first in `$HOME/.config/zellij/layouts/` and if not found in project's `./layouts`.
+Show multiple charts in predefined tmux layout. Layout will be searched first in `$HOME/.config/lazysar/layouts/` and if not found in project's `./layouts`.
 
 When panelized `lazysar` will show legend on top, out of the screen to maximize chart area. You can scroll the pane to see the legend.
 
 ```sh
 lazysar panel [LAYOUT_NAME] [DEFAULTS...]
+
+# list available layouts
+lazysar panel -l
+lazysar panel --list
 
 # start panel and refresh ever 5 seconds
 lazysar panel --refresh=5
@@ -83,13 +82,13 @@ Use the bottom panel to send different set of arguments to all panes (in all ses
 
 #### Basic panel example
 
-Uses [layouts/basic.kdl](./layouts/basic.kdl) - should work out of the box.
+Uses [layouts/basic.sh](./layouts/basic.sh) - should work out of the box.
 
 ![image](https://github.com/brablc/lazysar/assets/841734/fa61124b-371d-4da6-863c-127cd22fff4b)
 
 #### Multiple hosts zoomed to incident time
 
-Uses [layouts/hosts.kdl](./layouts/hosts.kdl) - needs to ba adapted to fix host names (assumes `node1` and `node2`).
+Uses [layouts/swarm-nodes.sh](./layouts/swarm-nodes.sh) - discovers Docker Swarm nodes automatically via `docker node ls`. Runs sar locally on the current host and over SSH on remote nodes.
 
 The basic example uses `cpu` preset, while mutliple hosts uses `cpu100` so the charts are comparable.
 

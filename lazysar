@@ -13,16 +13,29 @@ if [ ! -f "$PRESETS_FILE" ]; then
   PRESETS_FILE="$SCRIPT_DIR/presets.json"
 fi
 
-function check_zellij() {
-  if ! command -v zellij >/dev/null; then
-    echo "This command requires zellij to be installed!"
+function check_tmux() {
+  if ! command -v tmux >/dev/null; then
+    echo "This command requires tmux to be installed!"
     exit 1
   fi
 }
 
 if [ "$1" = "panel" ]; then
   shift
-  check_zellij
+
+  if [[ "$1" == "-l" || "$1" == "--list" ]]; then
+    LAYOUT_DIRS=("$HOME/.config/lazysar/layouts" "$SCRIPT_DIR/layouts")
+    for LAYOUT_DIR in "${LAYOUT_DIRS[@]}"; do
+      if [[ -d "$LAYOUT_DIR" ]]; then
+        for f in "$LAYOUT_DIR"/*.sh; do
+          [[ -f "$f" ]] && basename "$f" .sh
+        done
+      fi
+    done | sort -u
+    exit
+  fi
+
+  check_tmux
   mkdir -p $RUN_DIR
 
   if [[ $1 =~ ^- ]]; then
@@ -38,22 +51,28 @@ if [ "$1" = "panel" ]; then
     cat "$DEFAULTS_FILE" >"$RUN_CMDS"
   fi
 
-  LAYOUT_DIRS=("$HOME/.config/zellij/layouts" "$SCRIPT_DIR/layouts")
+  LAYOUT_DIRS=("$HOME/.config/lazysar/layouts" "$SCRIPT_DIR/layouts")
   for LAYOUT_DIR in "${LAYOUT_DIRS[@]}"; do
-    LAYOUT_PATH="${LAYOUT_DIR}/${LAYOUT}.kdl"
+    LAYOUT_PATH="${LAYOUT_DIR}/${LAYOUT}.sh"
     if [[ -f $LAYOUT_PATH ]]; then
       break
     fi
   done
   if [[ ! -f $LAYOUT_PATH ]]; then
-    echo "Cannot find zellij layout in any of: ${LAYOUT_DIRS[*]}"
+    echo "Cannot find tmux layout in any of: ${LAYOUT_DIRS[*]}"
     exit 1
   fi
 
-  if [[ -n $ZELLIJ_SESSION_NAME ]]; then
-    zellij action new-tab --layout "$LAYOUT_PATH"
+  if [[ -n $TMUX ]]; then
+    bash "$LAYOUT_PATH"
   else
-    zellij --layout "$LAYOUT_PATH"
+    SESSION="lazysar-$$"
+    COLS=$(tput cols 2>/dev/null || echo 220)
+    LINES=$(tput lines 2>/dev/null || echo 50)
+    tmux new-session -d -s "$SESSION" -x "$COLS" -y "$LINES"
+    TMUX_SESSION="$SESSION" bash "$LAYOUT_PATH"
+    tmux kill-window -t "${SESSION}:0" 2>/dev/null || true
+    tmux attach-session -t "$SESSION"
   fi
   exit
 fi
@@ -74,7 +93,7 @@ fi
 
 function stop_clients() {
   echo STOP >"$RUN_CMDS"
-  zellij action close-tab
+  tmux kill-window
 }
 
 if [ "$1" = "cmd" ]; then
@@ -83,13 +102,13 @@ if [ "$1" = "cmd" ]; then
   LAST_COMMAND=$(tail -1 "$RUN_CMDS")
   trap stop_clients EXIT
   if command -v rlwrap >/dev/null; then
-    (sleep 0.1 && zellij action write-chars -- "$LAST_COMMAND") &
+    (sleep 0.1 && tmux send-keys -- "$LAST_COMMAND") &
     while true; do
       echo "Send args to panels (ENTER for defaults, history C-r, C-c to exit):"
       rlwrap -C lazysar "$SCRIPT_PATH" rlwrap || exit
     done
   else
-    (sleep 1 && zellij action write-chars -- "echo \"$LAST_COMMAND\" > $RUN_CMDS") &
+    (sleep 1 && tmux send-keys "echo \"$LAST_COMMAND\" > $RUN_CMDS") &
     $SHELL
   fi
   exit
